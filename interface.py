@@ -1,7 +1,15 @@
 import random
 import gradio as gr
 
-with gr.Blocks() as iface:
+# On choisit un thème aléatoire parmi les thèmes disponibles
+THEME = random.choice(["Base", "Monochrome", "Glass", "Soft"])
+
+# On définit le titre de l'interface
+TITLE = "HydroProfileR"
+
+# On crée l'interface graphique avec le thème et le titre choisis précédemment
+with gr.Blocks(theme=THEME, title=TITLE) as iface:
+
     def hydrophobicity(pdb_file):
 
         if pdb_file is None:

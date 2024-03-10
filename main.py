@@ -1,4 +1,6 @@
 from interface import iface
 
 if __name__ == '__main__':
-    iface.launch()
+
+    # On lance l'interface graphique avec le favicon "favicon.png"
+    iface.launch(favicon_path="favicon.png")
