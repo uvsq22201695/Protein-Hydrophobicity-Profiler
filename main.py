@@ -1,6 +1,6 @@
-from interface import iface
+from interface import FletApp
+import flet as ft
 
 if __name__ == '__main__':
+    ft.app(target=FletApp)
 
-    # On lance l'interface graphique avec le favicon "favicon.png"
-    iface.launch(favicon_path="favicon.png")
