@@ -136,27 +136,32 @@ class FletApp:
         )
 
     def close_banner(self, e):
+        """ Ferme la bannière. """
         self.page.banner.open = False
         self.page.update()
 
     def show_banner_click(self, e, icon=ft.icons.WARNING_AMBER_ROUNDED, text=""):
-        self.close_banner(e)
-        self.page.banner.content = ft.Text(text)
+        """ Affiche une bannière avec un message et une icône. """
         self.page.banner.leading = ft.Icon(icon, size=40)
+        self.page.banner.content = ft.Text(text)
         self.page.banner.open = True
         self.page.update()
 
     def close_dlg(self, e):
+        """ Ferme la boîte de dialogue pour choisir les paramètres et réinitialise les valeurs. """
         self.dlg.open = False
         self.dlg.update()
 
         self.reset_values()
 
     def open_dlg(self):
+        """ Ouvre la boîte de dialogue pour choisir les paramètres. """
         self.dlg.open = True
         self.dlg.update()
 
     def reset_values(self):
+        """ Réinitialise les valeurs des champs de texte et le bouton de validation. """
+
         self.weighting.value = "50.0"
         self.window_size.value = "9"
         self.model.value = None
@@ -168,32 +173,52 @@ class FletApp:
         self.model.update()
 
     def on_weighting_changed(self, e):
+        """ Vérifie si la valeur entrée est valide et met à jour le bouton de validation. """
         self.validate_input(e, self.weighting, 0, 100, float)
 
     def on_window_size_changed(self, e):
+        """ Vérifie si la valeur entrée est valide et met à jour le bouton de validation. """
         self.validate_input(e, self.window_size, 1, None, int)
 
-    def validate_input(self, e, field, min_val, max_val, value_type):
+    def validate_input(self, e, field: ft.TextField, min_val: int, max_val: [int, float], value_type: [int, float]):
+        """
+        Vérifie si la valeur entrée est valide et met à jour le bouton de validation.
+        :param field: Champ de texte à valider.
+        :param min_val: Valeur minimale autorisée.
+        :param max_val: Valeur maximale autorisée.
+        :param value_type: Type de la valeur attendue.
+        """
+
+        # Si le champ est vide, on désactive le bouton de validation sinon on vérifie la valeur.
         if not field.value:
             self.validate_button.disabled = True
         else:
+            # On essaie de convertir la valeur en le type attendu.
             try:
                 value = value_type(field.value)
+
+                # Si la valeur est hors des bornes, on la supprime.
                 if (min_val is not None and value < min_val) or (max_val is not None and value > max_val):
                     field.value = field.value[:-1]
+
+                # Sinon, on vérifie les autres champs.
                 else:
                     self.check_parameters(e)
+
+            # Si la valeur n'est pas du bon type, on la supprime.
             except ValueError:
                 field.value = field.value[:-1]
 
-        field.update()
-        self.validate_button.update()
+        field.update()  # On met à jour le champ de texte.
+        self.validate_button.update()  # On met à jour le bouton de validation.
 
     def check_parameters(self, e):
+        """ Vérifie si les paramètres sont valides pour activer le bouton de validation. """
         self.validate_button.disabled = not all([self.weighting.value, self.window_size.value, self.model.value])
         self.validate_button.update()
 
     def pick_files_result(self, e: ft.FilePickerResultEvent):
+        """ Récupère le chemin du fichier sélectionné et ouvre la boîte de dialogue pour choisir les paramètres. """
         if e.files:
             self.path = e.files[0].path
             self.open_dlg()
@@ -232,6 +257,8 @@ class FletApp:
         self.second_row.update()
 
     def name_prot_clicked(self, e):
+        """ Copie le nom de la protéine dans le presse-papier lorsqu'il est cliqué et affiche une bannière. """
+
         pyperclip.copy(self.protein_name.spans[0].text)
         self.show_banner_click(
             e,
