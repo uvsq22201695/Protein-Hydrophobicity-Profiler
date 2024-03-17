@@ -9,7 +9,7 @@ class FletApp:
         self.page.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.page.theme = ft.Theme(color_scheme_seed=ft.colors.PINK, use_material3=True)
 
-        self.second_row = ft.Row(
+        self.main_container = ft.Row(
             [
                 ft.Text("Aucun fichier sélectionné", disabled=True)
             ],
@@ -63,7 +63,7 @@ class FletApp:
             min_extended_width=400,
             leading=ft.FloatingActionButton(
                 icon=ft.icons.UPLOAD_FILE_ROUNDED,
-                text="Nouveau profil d'hydrophobicité",
+                text="Nouveau profil d'hypdrophobicité",
                 on_click=lambda _: self.pick_files_dialog.pick_files(
                     allow_multiple=False,
                     allowed_extensions=["pdb"],
@@ -129,7 +129,7 @@ class FletApp:
                 [
                     self.rail,
                     ft.VerticalDivider(width=1),
-                    ft.Column([self.second_row], alignment=ft.MainAxisAlignment.CENTER, expand=True, spacing=20),
+                    ft.Column([self.main_container], alignment=ft.MainAxisAlignment.CENTER, expand=True, spacing=20),
                 ],
                 expand=True
             )
@@ -174,32 +174,31 @@ class FletApp:
 
     def on_weighting_changed(self, e):
         """ Vérifie si la valeur entrée est valide et met à jour le bouton de validation. """
-        self.validate_input(e, self.weighting, 0, 100, float)
+        self.validate_input(e, 0, 100, float)
 
     def on_window_size_changed(self, e):
         """ Vérifie si la valeur entrée est valide et met à jour le bouton de validation. """
-        self.validate_input(e, self.window_size, 1, None, int)
+        self.validate_input(e, 1, None, int)
 
-    def validate_input(self, e, field: ft.TextField, min_val: int, max_val: [int, float], value_type: [int, float]):
+    def validate_input(self, e, min_val: int, max_val: [int, float], value_type: [int, float]):
         """
         Vérifie si la valeur entrée est valide et met à jour le bouton de validation.
-        :param field: Champ de texte à valider.
         :param min_val: Valeur minimale autorisée.
         :param max_val: Valeur maximale autorisée.
         :param value_type: Type de la valeur attendue.
         """
 
         # Si le champ est vide, on désactive le bouton de validation sinon on vérifie la valeur.
-        if not field.value:
+        if not e.control.value:
             self.validate_button.disabled = True
         else:
             # On essaie de convertir la valeur en le type attendu.
             try:
-                value = value_type(field.value)
+                value = value_type(e.control.value)
 
                 # Si la valeur est hors des bornes, on la supprime.
                 if (min_val is not None and value < min_val) or (max_val is not None and value > max_val):
-                    field.value = field.value[:-1]
+                    e.control.value = e.control.value[:-1]
 
                 # Sinon, on vérifie les autres champs.
                 else:
@@ -207,9 +206,9 @@ class FletApp:
 
             # Si la valeur n'est pas du bon type, on la supprime.
             except ValueError:
-                field.value = field.value[:-1]
+                e.control.value = e.control.value[:-1]
 
-        field.update()  # On met à jour le champ de texte.
+        e.control.update()  # On met à jour le champ de texte.
         self.validate_button.update()  # On met à jour le bouton de validation.
 
     def check_parameters(self, e):
@@ -224,6 +223,7 @@ class FletApp:
             self.open_dlg()
 
     def validate_pressed(self, e):
+        """ Vérifie si le fichier sélectionné est valide et crée le profil d'hydrophobicité. """
 
         if True:
             self.create_profile(e)
@@ -235,7 +235,16 @@ class FletApp:
             )
 
     def create_profile(self, e):
-        self.second_row.controls = [ft.Column(
+        """ Crée le profil d'hydrophobicité de la protéine. """
+
+        weight = float(self.weighting.value)
+        window_size = int(self.window_size.value)
+        model = int(self.model.value)
+        path = self.path
+
+        self.close_dlg(e)
+
+        self.main_container.controls = [ft.Column(
             [
                 self.protein_name,
                 ft.Tabs(
@@ -254,7 +263,7 @@ class FletApp:
             expand=True
         )]
 
-        self.second_row.update()
+        self.main_container.update()
 
     def name_prot_clicked(self, e):
         """ Copie le nom de la protéine dans le presse-papier lorsqu'il est cliqué et affiche une bannière. """
