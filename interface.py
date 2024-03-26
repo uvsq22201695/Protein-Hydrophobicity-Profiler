@@ -1,27 +1,6 @@
 import flet as ft
 
 
-def _close_banner(e):
-    """ Ferme la bannière. """
-    e.open = False
-    e.update()
-
-
-def _show_banner_click(e: ft.Banner, icon: ft.icons, text: str):
-    """ Affiche une bannière avec une icône et un texte. """
-
-    e.leading = ft.Icon(name=icon, size=40)
-    e.content = ft.Text(value=text, size=15)
-    e.open = True
-    e.update()
-
-
-def _open_dlg(e):
-    """ Ouvre la boîte de dialogue pour choisir les paramètres. """
-    e.open = True
-    e.update()
-
-
 class FletApp:
     def __init__(self, page: ft.Page):
         self.page = page
@@ -134,7 +113,7 @@ class FletApp:
 
         self.pb = ft.Banner(
             actions=[
-                ft.IconButton(icon=ft.icons.CLOSE_ROUNDED, on_click=lambda _: _close_banner(self.pb)),
+                ft.IconButton(icon=ft.icons.CLOSE_ROUNDED, on_click=lambda _: self._close_banner(self.pb)),
             ]
         )
         self.page.banner = self.pb
@@ -149,6 +128,26 @@ class FletApp:
                 expand=True
             )
         )
+
+    @staticmethod
+    def _close_banner(e):
+        """ Ferme la bannière. """
+        e.open = False
+        e.update()
+
+    @staticmethod
+    def _show_banner_click(e: ft.Banner, icon: ft.icons, text: str):
+        """ Affiche une bannière avec une icône et un texte. """
+        e.leading = ft.Icon(name=icon, size=40)
+        e.content = ft.Text(value=text, size=15)
+        e.open = True
+        e.update()
+
+    @staticmethod
+    def _open_dlg(e):
+        """ Ouvre la boîte de dialogue pour choisir les paramètres. """
+        e.open = True
+        e.update()
 
     def _close_dlg(self, e):
         """ Ferme la boîte de dialogue pour choisir les paramètres et réinitialise les valeurs. """
@@ -212,7 +211,7 @@ class FletApp:
         """ Récupère le chemin du fichier sélectionné et ouvre la boîte de dialogue pour choisir les paramètres. """
         if e.files:
             self.path = e.files[0].path
-            _open_dlg(self.pd)
+            self._open_dlg(self.pd)
 
     def _validate_pressed(self, _):
         """ Vérifie si le fichier sélectionné est valide et crée le profil d'hydrophobicité. """
@@ -266,7 +265,7 @@ class FletApp:
         """ Copie le texte dans le presse-papiers. """
 
         self.page.set_clipboard(e.control.text)
-        _show_banner_click(
+        self._show_banner_click(
             self.pb,
             icon=ft.icons.CHECK_CIRCLE_ROUNDED,
             text="Texte copié dans le presse-papiers."
