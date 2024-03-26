@@ -1,5 +1,25 @@
 import flet as ft
-import pyperclip
+
+
+def _close_banner(e):
+    """ Ferme la bannière. """
+    e.open = False
+    e.update()
+
+
+def _show_banner_click(e: ft.Banner, icon: ft.icons, text: str):
+    """ Affiche une bannière avec une icône et un texte. """
+
+    e.leading = ft.Icon(name=icon, size=40)
+    e.content = ft.Text(value=text, size=15)
+    e.open = True
+    e.update()
+
+
+def _open_dlg(e):
+    """ Ouvre la boîte de dialogue pour choisir les paramètres. """
+    e.open = True
+    e.update()
 
 
 class FletApp:
@@ -27,7 +47,7 @@ class FletApp:
             min_lines=1,
             tooltip="Valeur comprise entre 0 et 100.",
             suffix_icon=ft.icons.PERCENT_ROUNDED,
-            on_change=self.on_weighting_changed
+            on_change=self._on_weighting_changed
         )
 
         self.window_size = ft.TextField(
@@ -39,7 +59,7 @@ class FletApp:
             max_lines=1,
             min_lines=1,
             tooltip="Valeur entière supérieure à 0.",
-            on_change=self.on_window_size_changed
+            on_change=self._on_window_size_changed
         )
 
         self.model = ft.Dropdown(
@@ -54,7 +74,7 @@ class FletApp:
             color=ft.colors.ON_SECONDARY_CONTAINER,
             bgcolor=ft.colors.with_opacity(0.2, ft.colors.BLACK),
             filled=True,
-            on_change=self.check_parameters
+            on_change=self._check_parameters
         )
 
         self.rail = ft.NavigationRail(
@@ -64,7 +84,7 @@ class FletApp:
             leading=ft.FloatingActionButton(
                 icon=ft.icons.UPLOAD_FILE_ROUNDED,
                 text="Nouveau profil d'hypdrophobicité",
-                on_click=lambda _: self.pick_files_dialog.pick_files(
+                on_click=lambda _: pick_files_dialog.pick_files(
                     allow_multiple=False,
                     allowed_extensions=["pdb"],
                     dialog_title="Sélectionner un fichier PDB",
@@ -73,24 +93,23 @@ class FletApp:
             group_alignment=-0.9,
         )
 
+        pick_files_dialog = ft.FilePicker(on_result=self._pick_files_result)
+        self.page.overlay.append(pick_files_dialog)
+
         self.protein_name = ft.Text(
             size=30,
             weight=ft.FontWeight.BOLD,
             selectable=True,
-            spans=[ft.TextSpan(text="Nom de la protéine", on_click=self.name_prot_clicked)]
-        )
-
-        self.pick_files_dialog = ft.FilePicker(
-            on_result=self.pick_files_result
+            spans=[ft.TextSpan(text="Nom de la protéine", on_click=self._copy_to_clipboard)]
         )
 
         self.validate_button = ft.FilledButton(
             text="Valider",
-            on_click=self.validate_pressed,
+            on_click=self._validate_pressed,
             disabled=True
         )
 
-        self.dlg = ft.AlertDialog(
+        self.pd = ft.AlertDialog(
             modal=True,
             title=ft.Text("Choisissez vos paramètres"),
             content=ft.Column(
@@ -105,24 +124,20 @@ class FletApp:
             actions=[
                 ft.TextButton(
                     text="Annuler",
-                    on_click=self.close_dlg
+                    on_click=lambda _: self._close_dlg(self.pd)
                 ),
                 self.validate_button
             ],
             actions_alignment=ft.MainAxisAlignment.END
         )
+        self.page.dialog = self.pd
 
         self.pb = ft.Banner(
             actions=[
-                ft.TextButton(icon=ft.icons.CLOSE_ROUNDED, on_click=self.close_banner),
+                ft.IconButton(icon=ft.icons.CLOSE_ROUNDED, on_click=lambda _: _close_banner(self.pb)),
             ]
         )
-
-        self.page.overlay.append(self.pick_files_dialog)
-        self.page.dialog = self.dlg
         self.page.banner = self.pb
-
-        self.path = None
 
         self.page.add(
             ft.Row(
@@ -135,31 +150,14 @@ class FletApp:
             )
         )
 
-    def close_banner(self, e):
-        """ Ferme la bannière. """
-        self.page.banner.open = False
-        self.page.update()
-
-    def show_banner_click(self, e, icon=ft.icons.WARNING_AMBER_ROUNDED, text=""):
-        """ Affiche une bannière avec un message et une icône. """
-        self.page.banner.leading = ft.Icon(icon, size=40)
-        self.page.banner.content = ft.Text(text)
-        self.page.banner.open = True
-        self.page.update()
-
-    def close_dlg(self, e):
+    def _close_dlg(self, e):
         """ Ferme la boîte de dialogue pour choisir les paramètres et réinitialise les valeurs. """
-        self.dlg.open = False
-        self.dlg.update()
+        e.open = False
+        e.update()
 
-        self.reset_values()
+        self._reset_values()
 
-    def open_dlg(self):
-        """ Ouvre la boîte de dialogue pour choisir les paramètres. """
-        self.dlg.open = True
-        self.dlg.update()
-
-    def reset_values(self):
+    def _reset_values(self):
         """ Réinitialise les valeurs des champs de texte et le bouton de validation. """
 
         self.weighting.value = "50.0"
@@ -172,15 +170,15 @@ class FletApp:
         self.window_size.update()
         self.model.update()
 
-    def on_weighting_changed(self, e):
+    def _on_weighting_changed(self, e):
         """ Vérifie si la valeur entrée est valide et met à jour le bouton de validation. """
-        self.validate_input(e, 0, 100, float)
+        self._validate_input(e, 0, 100, float)
 
-    def on_window_size_changed(self, e):
+    def _on_window_size_changed(self, e):
         """ Vérifie si la valeur entrée est valide et met à jour le bouton de validation. """
-        self.validate_input(e, 1, None, int)
+        self._validate_input(e, 1, None, int)
 
-    def validate_input(self, e, min_val: int, max_val: [int, float], value_type: [int, float]):
+    def _validate_input(self, e, min_val: int, max_val: [int, float], value_type: [int, float]):
         """
         Vérifie si la valeur entrée est valide et met à jour le bouton de validation.
         :param min_val: Valeur minimale autorisée.
@@ -188,75 +186,74 @@ class FletApp:
         :param value_type: Type de la valeur attendue.
         """
 
-        # Si le champ est vide, on désactive le bouton de validation sinon on vérifie la valeur.
         if not e.control.value:
             self.validate_button.disabled = True
         else:
-            # On essaie de convertir la valeur en le type attendu.
             try:
                 value = value_type(e.control.value)
 
-                # Si la valeur est hors des bornes, on la supprime.
                 if (min_val is not None and value < min_val) or (max_val is not None and value > max_val):
                     e.control.value = e.control.value[:-1]
-
-                # Sinon, on vérifie les autres champs.
                 else:
-                    self.check_parameters(e)
+                    self._check_parameters(e)
 
-            # Si la valeur n'est pas du bon type, on la supprime.
             except ValueError:
                 e.control.value = e.control.value[:-1]
 
-        e.control.update()  # On met à jour le champ de texte.
-        self.validate_button.update()  # On met à jour le bouton de validation.
+        e.control.update()
+        self.validate_button.update()
 
-    def check_parameters(self, e):
+    def _check_parameters(self, _):
         """ Vérifie si les paramètres sont valides pour activer le bouton de validation. """
         self.validate_button.disabled = not all([self.weighting.value, self.window_size.value, self.model.value])
         self.validate_button.update()
 
-    def pick_files_result(self, e: ft.FilePickerResultEvent):
+    def _pick_files_result(self, e: ft.FilePickerResultEvent):
         """ Récupère le chemin du fichier sélectionné et ouvre la boîte de dialogue pour choisir les paramètres. """
         if e.files:
             self.path = e.files[0].path
-            self.open_dlg()
+            _open_dlg(self.pd)
 
-    def validate_pressed(self, e):
+    def _validate_pressed(self, _):
         """ Vérifie si le fichier sélectionné est valide et crée le profil d'hydrophobicité. """
 
         if True:
-            self.create_profile(e)
+            self._create_profile()
         else:
             self.show_banner_click(
-                e,
+                self.pb,
                 icon=ft.icons.WARNING_AMBER_ROUNDED,
                 text="Un problème est survenu avec le fichier sélectionné."
             )
 
-    def create_profile(self, e):
+    def _create_profile(self):
         """ Crée le profil d'hydrophobicité de la protéine. """
+        self._close_dlg(self.pd)
 
         weight = float(self.weighting.value)
         window_size = int(self.window_size.value)
-        model = int(self.model.value)
+        model = str(self.model.value)
         path = self.path
-
-        self.close_dlg(e)
 
         self.main_container.controls = [ft.Column(
             [
                 self.protein_name,
                 ft.Tabs(
-                    selected_index=1,
+                    selected_index=0,
                     animation_duration=300,
                     tabs=[
                         ft.Tab(
-                            text="Tab 1",
+                            text="Profil d'hydrophobicité",
                             content=ft.Container(
                                 content=ft.Text("This is Tab 1"), alignment=ft.alignment.center
                             ),
-                        )]
+                        ),
+                        ft.Tab(
+                            text="Détails",
+                            content=ft.Container(
+                                content=ft.Text("This is Tab 2"), alignment=ft.alignment.center
+                            ),
+                        ),]
                 )
             ],
             alignment=ft.MainAxisAlignment.CENTER,
@@ -265,12 +262,12 @@ class FletApp:
 
         self.main_container.update()
 
-    def name_prot_clicked(self, e):
-        """ Copie le nom de la protéine dans le presse-papier lorsqu'il est cliqué et affiche une bannière. """
+    def _copy_to_clipboard(self, e):
+        """ Copie le texte dans le presse-papiers. """
 
-        pyperclip.copy(self.protein_name.spans[0].text)
-        self.show_banner_click(
-            e,
+        self.page.set_clipboard(e.control.text)
+        _show_banner_click(
+            self.pb,
             icon=ft.icons.CHECK_CIRCLE_ROUNDED,
-            text="Nom de la protéine copié dans le presse-papier."
+            text="Texte copié dans le presse-papiers."
         )
