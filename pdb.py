@@ -16,7 +16,7 @@ class JournalReference:
         self.page = ""
         self.year = ""
 
-        for line in data.split("\n"):
+        for _ in data.split("\n"):
             self.pub_name += data[19:47].strip()
             self.volume += data[51:55].strip()
             self.page += data[56:61].strip()
