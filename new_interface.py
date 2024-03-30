@@ -1,3 +1,5 @@
+import math
+
 import flet as ft
 
 from profile_generation import HydrophobicityProfile
@@ -114,7 +116,7 @@ class FletApp:
                     ref=main_content
                 )],
                 vertical_alignment=ft.CrossAxisAlignment.START,
-                expand=True,
+                expand=True
             )
         )
 
@@ -173,7 +175,7 @@ class FletApp:
             self.path = e.files[0].path
             self._switch_dialog(page_dialog)
 
-    def _generate_profile(self, page_dialog: ft.Ref[ft.AlertDialog],weighting: ft.Ref[ft.TextField],
+    def _generate_profile(self, page_dialog: ft.Ref[ft.AlertDialog], weighting: ft.Ref[ft.TextField],
                           window_size: ft.Ref[ft.TextField], model: ft.Ref[ft.Dropdown],
                           validate_button: ft.Ref[ft.FilledButton], main_content: ft.Ref[ft.Column]):
         """ Génère un profil d'hydrophobicité à partir des paramètres choisis. """
@@ -190,11 +192,119 @@ class FletApp:
             profile = HydrophobicityProfile(sequence, model_copy, window_size_copy, weighting_copy)
             profile_list.append((chain, profile))
 
+        color_by_chain = {
+            "A": ft.colors.RED,
+            "B": ft.colors.GREEN,
+            "C": ft.colors.BLUE,
+            "D": ft.colors.YELLOW,
+            "E": ft.colors.PURPLE,
+            "F": ft.colors.ORANGE,
+            "G": ft.colors.CYAN,
+            "H": ft.colors.PINK,
+            "I": ft.colors.LIGHT_GREEN,
+            "J": ft.colors.LIGHT_BLUE,
+            "K": ft.colors.YELLOW_200,
+            "L": ft.colors.PURPLE_200,
+            "M": ft.colors.ORANGE_200,
+            "N": ft.colors.CYAN_200,
+            "O": ft.colors.PINK_200,
+            "P": ft.colors.RED_200,
+            "Q": ft.colors.GREEN_200,
+            "R": ft.colors.BLUE_200,
+            "S": ft.colors.YELLOW_400,
+            "T": ft.colors.PURPLE_400,
+            "U": ft.colors.ORANGE_400,
+            "V": ft.colors.CYAN_400,
+            "W": ft.colors.PINK_400,
+            "X": ft.colors.RED_400,
+            "Y": ft.colors.GREEN_400,
+            "Z": ft.colors.BLUE_400,
+        }
+
+        data_list = []
+        for chain, profile in profile_list:
+            data_list.append(
+                ft.LineChartData(
+                    data_points=profile.points,
+                    stroke_width=8,
+                    curved=True,
+                    stroke_cap_round=True,
+                    color=color_by_chain[chain],
+                    data=chain
+                )
+            )
+
+        min_y = math.inf
+        max_y = -math.inf
+        min_x = math.inf
+        max_x = -math.inf
+        for _, profile in profile_list:
+            if profile.abscissa_axe.min_value < min_x:
+                min_x = profile.abscissa_axe.min_value
+            if profile.abscissa_axe.max_value > max_x:
+                max_x = profile.abscissa_axe.max_value
+            if profile.ordinate_axe.min_value < min_y:
+                min_y = profile.ordinate_axe.min_value
+            if profile.ordinate_axe.max_value > max_y:
+                max_y = profile.ordinate_axe.max_value
+
+        chart = ft.LineChart(
+            data_series=data_list,
+            tooltip_bgcolor=ft.colors.with_opacity(0.8, ft.colors.BLUE_GREY),
+            min_y=min_y,
+            max_y=max_y,
+            min_x=min_x,
+            max_x=max_x,
+            horizontal_grid_lines=ft.ChartGridLines(
+                interval=1, color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE), width=1
+            ),
+            vertical_grid_lines=ft.ChartGridLines(
+                interval=5, color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE), width=1
+            ),
+            left_axis=ft.ChartAxis(
+                title=ft.Text("Hydrophobicity"),
+                labels_interval=1,
+                labels_size=50
+            ),
+            bottom_axis=ft.ChartAxis(
+                title=ft.Text("Amino acids"),
+                labels_interval=50,
+                labels_size=50
+            ),
+            border=ft.border.all(3, ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE))
+        )
+
         main_content.current.controls.clear()
 
         main_content.current.controls.append(
-                ft.Text("Test")
+            ft.Row(
+                [ft.Checkbox(
+                    label=f"Show chain {chain}",
+                    value=True,
+                    on_change=lambda e: self._show_hide_chains(e, data_list)
+                ) for chain, _ in profile_list],
+                alignment=ft.MainAxisAlignment.CENTER
+            )
+        )
+
+        main_content.current.controls.append(
+            chart
         )
 
         main_content.current.update()
 
+    @staticmethod
+    def _show_hide_chains(e, data_list):
+        """ Affiche ou masque les chaînes sélectionnées. """
+        if e.control.value:
+            for data in data_list:
+                if data.data == e.control.label[-1]:
+                    data.visible = True
+                    data.update()
+                    break
+        else:
+            for data in data_list:
+                if data.data == e.control.label[-1]:
+                    data.visible = False
+                    data.update()
+                    break
