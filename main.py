@@ -1,4 +1,4 @@
-from interface import FletApp
+from new_interface import FletApp
 import flet as ft
 
 if __name__ == '__main__':
