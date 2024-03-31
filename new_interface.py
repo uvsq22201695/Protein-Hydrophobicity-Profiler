@@ -277,18 +277,43 @@ class FletApp:
         main_content.current.controls.clear()
 
         main_content.current.controls.append(
-            ft.Row(
-                [ft.Checkbox(
-                    label=f"Show chain {chain}",
-                    value=True,
-                    on_change=lambda e: self._show_hide_chains(e, data_list)
-                ) for chain, _ in profile_list],
-                alignment=ft.MainAxisAlignment.CENTER
+            ft.Text(
+                size=30,
+                weight=ft.FontWeight.BOLD,
+                selectable=True,
+                spans=[ft.TextSpan(text=f"{pdb_file.journal.title}",
+                                   on_click=lambda e: self.page.set_clipboard(e.control.text))]
             )
         )
 
         main_content.current.controls.append(
-            chart
+            ft.Tabs(
+                selected_index=0,
+                animation_duration=0,
+                tabs=[
+                    ft.Tab(
+                        text="Hydrophobicity Profile",
+                        icon=ft.icons.STACKED_LINE_CHART_ROUNDED,
+                        content=ft.Column([
+                            ft.Row(
+                                [ft.Checkbox(
+                                    label=f"Show chain {chain}",
+                                    value=True,
+                                    on_change=lambda e: self._show_hide_chains(e, data_list)
+                                ) for chain, _ in profile_list],
+                                alignment=ft.MainAxisAlignment.CENTER,
+                            ),
+                            chart],
+                        )
+                    ),
+                    ft.Tab(
+                        text="Details",
+                        icon=ft.icons.INFO_ROUNDED,
+                        content=ft.Column([])
+                    )
+                ],
+                tab_alignment=ft.TabAlignment.CENTER,
+            )
         )
 
         main_content.current.update()
