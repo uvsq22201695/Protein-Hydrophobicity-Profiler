@@ -281,8 +281,7 @@ class FletApp:
                 size=30,
                 weight=ft.FontWeight.BOLD,
                 selectable=True,
-                spans=[ft.TextSpan(text=f"{pdb_file.journal.title}",
-                                   on_click=lambda e: self.page.set_clipboard(e.control.text))]
+                spans=[ft.TextSpan(text=f"{pdb_file.journal.title}")]
             )
         )
 
@@ -309,7 +308,136 @@ class FletApp:
                     ft.Tab(
                         text="Details",
                         icon=ft.icons.INFO_ROUNDED,
-                        content=ft.Column([])
+                        content=ft.Column([
+                            ft.ExpansionPanelList(
+                                expand_icon_color=ft.colors.BLUE_GREY,
+                                spacing=20,
+                                elevation=8,
+                                divider_color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE),
+                                controls=[
+                                    ft.ExpansionPanel(
+                                        header=ft.ListTile(title=ft.Text("Journal Information")),
+                                        can_tap_header=True,
+                                        content=ft.Column([
+                                            ft.Text(spans=[
+                                                ft.TextSpan(text=f"Title: ",
+                                                            style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                                ft.TextSpan(text=pdb_file.journal.title)
+                                            ], selectable=True),
+                                            ft.Text(spans=[
+                                                ft.TextSpan(text=f"Authors: ",
+                                                            style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                                ft.TextSpan(text=pdb_file.journal.authors)
+                                            ], selectable=True),
+                                            ft.Text(spans=[
+                                                ft.TextSpan(text=f"PubMed Link: ",
+                                                            style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                                ft.TextSpan(
+                                                    text=pdb_file.journal.pubmed_link,
+                                                    style=ft.TextStyle(color=ft.colors.BLUE),
+                                                    url=pdb_file.journal.pubmed_link)
+                                            ], selectable=True),
+                                            ft.Text(spans=[
+                                                ft.TextSpan(text=f"PubMed ID: ",
+                                                            style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                                ft.TextSpan(text=pdb_file.journal.pubmed_id)
+                                            ], selectable=True),
+                                            ft.Text(spans=[
+                                                ft.TextSpan(text=f"DOI: ",
+                                                            style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                                ft.TextSpan(text=pdb_file.journal.digital_object_identifier)
+                                            ], selectable=True),
+                                            ft.Text(spans=[
+                                                ft.TextSpan(text=f"ISSN: ",
+                                                            style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                                ft.TextSpan(
+                                                    text=pdb_file.journal.international_standard_serial_number)
+                                            ], selectable=True),
+                                            ft.Text(spans=[
+                                                ft.TextSpan(text=f"Publisher: ",
+                                                            style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                                ft.TextSpan(text=pdb_file.journal.publisher)
+                                            ], selectable=True),
+                                            ft.Text(spans=[
+                                                ft.TextSpan(text=f"Year: ",
+                                                            style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                                ft.TextSpan(text=pdb_file.journal.reference.year)
+                                            ], selectable=True),
+                                            ft.Text(spans=[
+                                                ft.TextSpan(text=f"Volume: ",
+                                                            style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                                ft.TextSpan(text=pdb_file.journal.reference.volume)
+                                            ], selectable=True),
+                                            ft.Text(spans=[
+                                                ft.TextSpan(text=f"Page: ",
+                                                            style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                                ft.TextSpan(text=pdb_file.journal.reference.page)
+                                            ], selectable=True),
+                                            ft.Text(spans=[
+                                                ft.TextSpan(text=f"Publication Name: ",
+                                                            style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                                ft.TextSpan(text=pdb_file.journal.reference.pub_name)
+                                            ], selectable=True),
+                                        ]),
+                                    ),
+
+                                    ft.ExpansionPanel(
+                                        header=ft.ListTile(title=ft.Text("PDB Information")),
+                                        can_tap_header=True,
+                                        content=ft.Column([
+                                            ft.Text(spans=[
+                                                ft.TextSpan(text=f"Author(s): ",
+                                                            style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                                ft.TextSpan(text=pdb_file.authors)
+                                            ], selectable=True),
+                                            ft.Text(spans=[
+                                                ft.TextSpan(text=f"PDB Link: ",
+                                                            style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                                ft.TextSpan(text=pdb_file.header.pdb_link,
+                                                            style=ft.TextStyle(color=ft.colors.BLUE),
+                                                            url=pdb_file.header.pdb_link, )
+                                            ], selectable=True),
+                                            ft.Text(spans=[
+                                                ft.TextSpan(text=f"Date: ",
+                                                            style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                                ft.TextSpan(text=pdb_file.header.date)
+                                            ], selectable=True),
+                                            ft.Text(spans=[
+                                                ft.TextSpan(text=f"Classification: ",
+                                                            style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                                ft.TextSpan(text=pdb_file.header.classification)
+                                            ], selectable=True),
+                                            ft.Text(spans=[
+                                                ft.TextSpan(text=f"ID: ",
+                                                            style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                                ft.TextSpan(text=pdb_file.header.id)
+                                            ], selectable=True),
+                                        ]),
+                                    ),
+                                    ft.ExpansionPanel(
+                                        header=ft.ListTile(title=ft.Text("Parameters")),
+                                        can_tap_header=True,
+                                        content=ft.Column([
+                                            ft.Text(spans=[
+                                                ft.TextSpan(text=f"Model: ",
+                                                            style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                                ft.TextSpan(text=model.current.options[model_copy].text)
+                                            ], selectable=True),
+                                            ft.Text(spans=[
+                                                ft.TextSpan(text=f"Window size: ",
+                                                            style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                                ft.TextSpan(text=str(window_size_copy))
+                                            ], selectable=True),
+                                            ft.Text(spans=[
+                                                ft.TextSpan(text=f"Weighting: ",
+                                                            style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                                ft.TextSpan(text=str(weighting_copy))
+                                            ], selectable=True),
+                                        ]),
+                                    )
+                                ]
+                            )]
+                        )
                     )
                 ],
                 tab_alignment=ft.TabAlignment.CENTER,
@@ -333,3 +461,14 @@ class FletApp:
                     data.visible = False
                     data.update()
                     break
+
+
+"""
+Problème de l'interface:
+- Le contenu d'un tab est collé à la barre de titre du tab.
+- Le graphique ne veut pas être étendu.
+- On ne peut pas scroll dans le tab 2.
+- Les authors affichés sous forme de liste.
+- Les ExpansionPanel s'affiche avec un texte de + en + décalé.
+- On peut avoir une variable vide dans les détails.
+"""
