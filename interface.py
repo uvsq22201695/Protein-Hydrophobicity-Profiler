@@ -25,6 +25,8 @@ class FletApp:
         pick_files_dialog = ft.FilePicker(on_result=lambda e: self._pick_files_result(e, page_dialog))
         self.page.overlay.append(pick_files_dialog)
 
+        models_name = HydrophobicityProfile.get_models_names()
+
         self.page.dialog = ft.AlertDialog(
             ref=page_dialog,
             modal=True,
@@ -32,6 +34,7 @@ class FletApp:
             content=ft.Column(
                 [
                     ft.TextField(
+                        border_radius=20,
                         ref=weighting,
                         label="Weighting at the ends",
                         input_filter=ft.InputFilter(allow=True, regex_string=r"[0-9\.]", replacement_string=""),
@@ -46,6 +49,7 @@ class FletApp:
                                                                  weighting, window_size, model)
                     ),
                     ft.TextField(
+                        border_radius=20,
                         ref=window_size,
                         label="Window size",
                         input_filter=ft.NumbersOnlyInputFilter(),
@@ -59,17 +63,15 @@ class FletApp:
                                                                  weighting, window_size, model)
                     ),
                     ft.Dropdown(
+                        border_radius=20,
                         ref=model,
                         label="Model",
                         hint_text="Choose a model",
                         options=[
-                            ft.dropdown.Option("0", "Kyte & Doolittle"),
-                            ft.dropdown.Option("1", "Hopp-Woods"),
-                            ft.dropdown.Option("2", "Eisenberg"),
-                            ft.dropdown.Option("4", "Engelman - GES"),
+                            ft.dropdown.Option(str(i), models_name[i]) for i in range(len(models_name))
                         ],
                         color=ft.colors.ON_SECONDARY_CONTAINER,
-                        bgcolor=ft.colors.with_opacity(0.2, ft.colors.BLACK),
+                        # bgcolor=ft.colors.with_opacity(0.2, ft.colors.BLACK),
                         filled=True,
                         on_change=lambda _: self._check_parameters(validate_button, weighting, window_size, model)
                     )
@@ -180,7 +182,7 @@ class FletApp:
                           validate_button: ft.Ref[ft.FilledButton], main_content: ft.Ref[ft.Column]):
         """ Génère un profil d'hydrophobicité à partir des paramètres choisis. """
         model_copy = int(model.current.value)
-        window_size_copy = int(window_size.current.value)
+        window_size_copy = int(window_size.current.value) // 2
         weighting_copy = float(weighting.current.value) / 100
 
         self._switch_dialog(page_dialog, weighting, window_size, model, validate_button)
