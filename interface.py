@@ -284,134 +284,48 @@ class FletApp:
                 size=30,
                 weight=ft.FontWeight.BOLD,
                 selectable=True,
-                spans=[ft.TextSpan(text=f"{pdb_file.journal.title}")]
+                spans=[ft.TextSpan(text=f"{pdb_file.journal.title}")],
+                text_align=ft.TextAlign.CENTER
+            )
+        )
+
+        main_content.current.alignment = ft.MainAxisAlignment.START
+
+        navigation_bar = ft.Ref[ft.NavigationBar]()
+
+        main_content.current.controls.append(
+            ft.Container(
+                content=ft.Column(
+                    [ft.NavigationBar(
+                        destinations=[
+                            ft.NavigationDestination(icon=ft.icons.STACKED_LINE_CHART_ROUNDED,
+                                                     label="Hydrophobicity Profile"),
+                            ft.NavigationDestination(icon=ft.icons.INFO_ROUNDED, label="Details")
+                        ],
+                        on_change=lambda e: self._switch_content(e, main_content, profile_list, data_list, chart,
+                                                                 model, model_copy, window_size_copy, weighting_copy,
+                                                                 pdb_file, navigation_bar),
+                        width=self.page.width / 2,
+                        ref=navigation_bar,
+                        data=0
+                    )]
+                ),
+                border_radius=20,
             )
         )
 
         main_content.current.controls.append(
-            ft.Tabs(
-                expand=True,
-                selected_index=0,
-                animation_duration=0,
-                tabs=[
-                    ft.Tab(
-                        text="Hydrophobicity Profile",
-                        icon=ft.icons.STACKED_LINE_CHART_ROUNDED,
-                        content=ft.Container(
-                            ft.Column([ft.Row(
-                                [ft.Checkbox(
-                                    label=f"Show chain {chain}",
-                                    value=True,
-                                    on_change=lambda e: self._show_hide_chains(e, data_list)
-                                ) for chain, _ in profile_list],
-                                alignment=ft.MainAxisAlignment.CENTER
-                            ),
-                                chart]
-                            ),
-                            padding=20
-                        )
-                    ),
-
-                    ft.Tab(
-                        text="Details",
-                        icon=ft.icons.INFO_ROUNDED,
-                        content=ft.ListView([
-                            ft.ExpansionPanelList(
-                                expand_icon_color=ft.colors.BLUE_GREY,
-                                spacing=20,
-                                elevation=8,
-                                divider_color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE),
-                                controls=[
-                                    ft.ExpansionPanel(
-                                        header=ft.ListTile(leading=ft.Icon(ft.icons.NEWSPAPER_ROUNDED),
-                                                           title=ft.Text("Journal Information")),
-                                        can_tap_header=True,
-                                        content=ft.ListTile(
-                                            title=ft.Markdown(
-                                                value=f"**Title:** {pdb_file.journal.title if pdb_file.journal.title else 'Not available'}\n\n" +
-                                                      f"**Authors:** {', '.join(pdb_file.journal.authors) if pdb_file.journal.authors else 'Non disponible'}\n\n" +
-                                                      f"**PubMed Link:** [{pdb_file.journal.pubmed_link if pdb_file.journal.pubmed_link else 'Non disponible'}]" +
-                                                      f"({pdb_file.journal.pubmed_link if pdb_file.journal.pubmed_link else '#'})\n\n" +
-                                                      f"**PubMed ID:** {pdb_file.journal.pubmed_id if pdb_file.journal.pubmed_id else 'Non disponible'}\n\n" +
-                                                      f"**DOI:** {pdb_file.journal.digital_object_identifier if pdb_file.journal.digital_object_identifier else 'Non disponible'}\n\n" +
-                                                      f"**ISSN:** {pdb_file.journal.international_standard_serial_number if pdb_file.journal.international_standard_serial_number else 'Non disponible'}\n\n" +
-                                                      f"**Publisher:** {pdb_file.journal.publisher if pdb_file.journal.publisher else 'Non disponible'}\n\n" +
-                                                      f"**Year:** {pdb_file.journal.reference.year if pdb_file.journal.reference.year else 'Non disponible'}\n\n" +
-                                                      f"**Volume:** {pdb_file.journal.reference.volume if pdb_file.journal.reference.volume else 'Non disponible'}\n\n" +
-                                                      f"**Page:** {pdb_file.journal.reference.page if pdb_file.journal.reference.page else 'Non disponible'}\n\n" +
-                                                      f"**Publication Name:** {pdb_file.journal.reference.pub_name if pdb_file.journal.reference.pub_name else 'Non disponible'}",
-                                                auto_follow_links=True,
-                                                selectable=True)
-                                        )
-                                    ),
-
-                                    ft.ExpansionPanel(
-                                        header=ft.ListTile(leading=ft.Icon(ft.icons.ATTACH_FILE_ROUNDED),
-                                                           title=ft.Text("PDB Information")),
-                                        can_tap_header=True,
-                                        content=ft.ListTile(
-                                            title=ft.Column([
-                                                ft.Markdown(
-                                                    value=f"**Author(s):** {', '.join(pdb_file.authors) if pdb_file.authors else 'Non disponible'}\n\n" +
-                                                          f"**PDB Link:** [{pdb_file.header.pdb_link if pdb_file.header.pdb_link else 'Non disponible'}]({pdb_file.header.pdb_link if pdb_file.header.pdb_link else '#'})\n\n" +
-                                                          f"**Date:** {pdb_file.header.date if pdb_file.header.date else 'Non disponible'}\n\n" +
-                                                          f"**Classification:** {pdb_file.header.classification if pdb_file.header.classification else 'Non disponible'}\n\n" +
-                                                          f"**ID:** {pdb_file.header.id if pdb_file.header.id else 'Non disponible'}",
-                                                    auto_follow_links=True,
-                                                    selectable=True),
-                                                ft.ExpansionPanelList(
-                                                    controls=[
-                                                        ft.ExpansionPanel(
-                                                            header=ft.ListTile(leading=ft.Icon(ft.icons.LIST_ROUNDED),
-                                                                               title=ft.Text("Sequence")),
-                                                            can_tap_header=True,
-                                                            content=ft.ListTile(
-                                                                title=ft.Column([
-                                                                    ft.Markdown(
-                                                                        value=f"**Chain {chain}**\n\n{' '.join(sequence)}",
-                                                                        selectable=True) for chain, sequence in
-                                                                    pdb_file.seqres.items()
-                                                                ])
-                                                            )
-                                                        ),
-                                                        # ft.ExpansionPanel(
-                                                        #     header=ft.ListTile(leading=ft.Icon(ft.icons.EDIT_ROUNDED),
-                                                        #                        title=ft.Text("Remarks")),
-                                                        #     can_tap_header=True,
-                                                        #     content=ft.ListTile(
-                                                        #         title=ft.Markdown(
-                                                        #             value=f"**Remarks:** {pdb_file.remarks if pdb_file.remarks else 'Non disponible'}",
-                                                        #             selectable=True)
-                                                        #     )
-                                                        # )
-                                                    ]
-                                                )
-                                            ])
-                                        )
-                                    ),
-
-                                    ft.ExpansionPanel(
-                                        header=ft.ListTile(leading=ft.Icon(ft.icons.SETTINGS_ROUNDED),
-                                                           title=ft.Text("Parameters")),
-                                        can_tap_header=True,
-                                        content=ft.ListTile(
-                                            title=ft.Markdown(
-                                                value=f"**Model:** {model.current.options[model_copy].text if model.current.options[model_copy].text else 'Non disponible'}\n\n" +
-                                                      f"**Window size:** {window_size_copy if window_size_copy else 'Non disponible'}\n\n" +
-                                                      f"**Weighting:** {weighting_copy * 100 if weighting_copy else 'Non disponible'}%",
-                                                selectable=True))
-                                    )
-
-                                ]
-                            )],
-                            auto_scroll=True,
-                            padding=20
-                        )
-                    )
-                ],
-                tab_alignment=ft.TabAlignment.CENTER
+            ft.Row(
+                [ft.Checkbox(
+                    label=f"Show chain {chain}",
+                    value=True,
+                    on_change=lambda e: self._show_hide_chains(e, data_list)
+                ) for chain, _ in profile_list],
+                alignment=ft.MainAxisAlignment.CENTER
             )
         )
+
+        main_content.current.controls.append(chart)
 
         main_content.current.update()
 
@@ -430,3 +344,129 @@ class FletApp:
                     data.visible = False
                     data.update()
                     break
+
+    def _switch_content(self, e: ft.ControlEvent, main_content: ft.Ref[ft.Column], profile_list: list,
+                        data_list: list, chart: ft.LineChart, model: ft.Ref[ft.Dropdown], model_copy: int,
+                        window_size_copy: int, weighting_copy: float, pdb_file: PDBFile,
+                        navigation_bar: ft.Ref[ft.NavigationBar]):
+        """ Change le contenu de la page en fonction de l'onglet sélectionné. """
+        if e.control.selected_index == navigation_bar.current.data:
+            return
+        else:
+            navigation_bar.current.data = e.control.selected_index
+
+        if e.control.selected_index == 0:
+            main_content.current.controls.pop(2)
+            main_content.current.controls.append(
+                ft.Row(
+                    [ft.Checkbox(
+                        label=f"Show chain {chain}",
+                        value=True,
+                        on_change=lambda e: self._show_hide_chains(e, data_list)
+                    ) for chain, _ in profile_list],
+                    alignment=ft.MainAxisAlignment.CENTER
+                )
+            )
+            main_content.current.controls.append(chart)
+
+        else:
+            main_content.current.controls.pop(3)
+            main_content.current.controls.pop(2)
+            main_content.current.controls.append(
+                ft.ListView([
+                    ft.ExpansionPanelList(
+                        expand_icon_color=ft.colors.BLUE_GREY,
+                        spacing=20,
+                        elevation=8,
+                        divider_color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE),
+                        controls=[
+                            ft.ExpansionPanel(
+                                header=ft.ListTile(leading=ft.Icon(ft.icons.NEWSPAPER_ROUNDED),
+                                                   title=ft.Text("Journal Information")),
+                                can_tap_header=True,
+                                content=ft.ListTile(
+                                    title=ft.Markdown(
+                                        value=f"**Title:** {pdb_file.journal.title if pdb_file.journal.title else 'Not available'}\n\n" +
+                                              f"**Authors:** {', '.join(pdb_file.journal.authors) if pdb_file.journal.authors else 'Non disponible'}\n\n" +
+                                              f"**PubMed Link:** [{pdb_file.journal.pubmed_link if pdb_file.journal.pubmed_link else 'Non disponible'}]" +
+                                              f"({pdb_file.journal.pubmed_link if pdb_file.journal.pubmed_link else '#'})\n\n" +
+                                              f"**PubMed ID:** {pdb_file.journal.pubmed_id if pdb_file.journal.pubmed_id else 'Non disponible'}\n\n" +
+                                              f"**DOI:** {pdb_file.journal.digital_object_identifier if pdb_file.journal.digital_object_identifier else 'Non disponible'}\n\n" +
+                                              f"**ISSN:** {pdb_file.journal.international_standard_serial_number if pdb_file.journal.international_standard_serial_number else 'Non disponible'}\n\n" +
+                                              f"**Publisher:** {pdb_file.journal.publisher if pdb_file.journal.publisher else 'Non disponible'}\n\n" +
+                                              f"**Year:** {pdb_file.journal.reference.year if pdb_file.journal.reference.year else 'Non disponible'}\n\n" +
+                                              f"**Volume:** {pdb_file.journal.reference.volume if pdb_file.journal.reference.volume else 'Non disponible'}\n\n" +
+                                              f"**Page:** {pdb_file.journal.reference.page if pdb_file.journal.reference.page else 'Non disponible'}\n\n" +
+                                              f"**Publication Name:** {pdb_file.journal.reference.pub_name if pdb_file.journal.reference.pub_name else 'Non disponible'}",
+                                        auto_follow_links
+                                        =True,
+                                        selectable=True)
+                                )
+                            ),
+
+                            ft.ExpansionPanel(
+                                header=ft.ListTile(leading=ft.Icon(ft.icons.ATTACH_FILE_ROUNDED),
+                                                   title=ft.Text("PDB Information")),
+                                can_tap_header=True,
+                                content=ft.ListTile(
+                                    title=ft.Column([
+                                        ft.Markdown(
+                                            value=f"**Author(s):** {', '.join(pdb_file.authors) if pdb_file.authors else 'Non disponible'}\n\n" +
+                                                  f"**PDB Link:** [{pdb_file.header.pdb_link if pdb_file.header.pdb_link else 'Non disponible'}]({pdb_file.header.pdb_link if pdb_file.header.pdb_link else '#'})\n\n" +
+                                                  f"**Date:** {pdb_file.header.date if pdb_file.header.date else 'Non disponible'}\n\n" +
+                                                  f"**Classification:** {pdb_file.header.classification if pdb_file.header.classification else 'Non disponible'}\n\n" +
+                                                  f"**ID:** {pdb_file.header.id if pdb_file.header.id else 'Non disponible'}",
+                                            auto_follow_links=True,
+                                            selectable=True),
+                                        ft.ExpansionPanelList(
+                                            controls=[
+                                                ft.ExpansionPanel(
+                                                    header=ft.ListTile(leading=ft.Icon(ft.icons.LIST_ROUNDED),
+                                                                       title=ft.Text("Sequence")),
+                                                    can_tap_header=True,
+                                                    content=ft.ListTile(
+                                                        title=ft.Column([
+                                                            ft.Markdown(
+                                                                value=f"**Chain {chain}**\n\n{' '.join(sequence)}",
+                                                                selectable=True) for chain, sequence in
+                                                            pdb_file.seqres.items()
+                                                        ])
+                                                    )
+                                                ),
+                                                # ft.ExpansionPanel(
+                                                #     header=ft.ListTile(leading=ft.Icon(ft.icons.EDIT_ROUNDED),
+                                                #                        title=ft.Text("Remarks")),
+                                                #     can_tap_header=True,
+                                                #     content=ft.ListTile(
+                                                #         title=ft.Markdown(
+                                                #             value=f"**Remarks:** {pdb_file.remarks if pdb_file.remarks else 'Non disponible'}",
+                                                #             selectable=True)
+                                                #     )
+                                                # )
+                                            ]
+                                        )
+                                    ])
+                                )
+                            ),
+
+                            ft.ExpansionPanel(
+                                header=ft.ListTile(leading=ft.Icon(ft.icons.SETTINGS_ROUNDED),
+                                                   title=ft.Text("Parameters")),
+                                can_tap_header=True,
+                                content=ft.ListTile(
+                                    title=ft.Markdown(
+                                        value=f"**Model:** {model.current.options[model_copy].text if model.current.options[model_copy].text else 'Non disponible'}\n\n" +
+                                              f"**Window size:** {window_size_copy if window_size_copy else 'Non disponible'}\n\n" +
+                                              f"**Weighting:** {weighting_copy * 100 if weighting_copy else 'Non disponible'}%",
+                                        selectable=True))
+                            )
+
+                        ]
+                    )],
+                    auto_scroll=True,
+                    padding=20,
+                    expand=True
+                )
+            )
+
+        main_content.current.update()
