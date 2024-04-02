@@ -88,9 +88,3 @@ class PDBFile:
 
         self.remarks = list(remarks.values())
         self.journal = Journal(journal)
-
-
-if __name__ == '__main__':
-    pdb_file = PDBFile('Annexe.pdb')
-    print(pdb_file.journal.pubmed_link)
-    print(pdb_file.seqres)
