@@ -1,3 +1,5 @@
+import time
+
 import flet as ft
 
 from profile_generation import HydrophobicityProfile
@@ -206,7 +208,7 @@ class FletApp:
                 )
             )
 
-        checkboxes_ref = ft.Ref[ft.Row]()
+        switch_ref = ft.Ref[ft.Row]()
         line_chart_ref = ft.Ref[ft.LineChart]()
         list_view_ref = ft.Ref[ft.ListView]()
 
@@ -227,20 +229,21 @@ class FletApp:
                                                  label="Hydrophobicity Profile"),
                         ft.NavigationDestination(icon=ft.icons.INFO_ROUNDED, label="Details")
                     ],
-                    on_change=lambda e: self._switch_content(e, main_content, line_chart_ref, checkboxes_ref, list_view_ref),
+                    on_change=lambda e: self._switch_content(e, main_content, line_chart_ref, switch_ref,
+                                                             list_view_ref),
                     width=self.page.width / 2
                 ),
                 border_radius=20
             ),
 
             ft.Row(
-                [ft.Checkbox(
+                [ft.Switch(
                     label=f"Show chain {chain}",
                     value=True,
                     on_change=lambda e: self._show_hide_chains(e, data_list)
                 ) for chain, _ in profile_list],
                 alignment=ft.MainAxisAlignment.CENTER,
-                ref=checkboxes_ref
+                ref=switch_ref
             ),
 
             ft.LineChart(
