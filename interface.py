@@ -1,5 +1,3 @@
-import time
-
 import flet as ft
 
 from profile_generation import HydrophobicityProfile
@@ -181,7 +179,7 @@ class FletApp:
                           validate_button: ft.Ref[ft.FilledButton], main_content: ft.Ref[ft.Column]):
         """ Génère un profil d'hydrophobicité à partir des paramètres choisis. """
         model_copy = int(model.current.value)
-        window_size_copy = int(window_size.current.value) // 2
+        window_size_copy = int(window_size.current.value)
         weighting_copy = float(weighting.current.value) / 100
 
         self._switch_dialog(page_dialog, weighting, window_size, model, validate_button)
@@ -190,7 +188,7 @@ class FletApp:
 
         profile_list = []
         for chain, sequence in pdb_file.seqres.items():
-            profile = HydrophobicityProfile(sequence, model_copy, window_size_copy, weighting_copy)
+            profile = HydrophobicityProfile(sequence, model_copy, window_size_copy // 2, weighting_copy)
             profile_list.append((chain, profile))
 
         data_list = []
@@ -332,17 +330,7 @@ class FletApp:
                                                         pdb_file.seqres.items()
                                                     ])
                                                 )
-                                            ),
-                                            # ft.ExpansionPanel(
-                                            #     header=ft.ListTile(leading=ft.Icon(ft.icons.EDIT_ROUNDED),
-                                            #                        title=ft.Text("Remarks")),
-                                            #     can_tap_header=True,
-                                            #     content=ft.ListTile(
-                                            #         title=ft.Markdown(
-                                            #             value=f"**Remarks:** {pdb_file.remarks if pdb_file.remarks else 'Not available'}",
-                                            #             selectable=True)
-                                            #     )
-                                            # )
+                                            )
                                         ]
                                     )
                                 ])
