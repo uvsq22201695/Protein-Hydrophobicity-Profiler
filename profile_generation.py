@@ -36,6 +36,21 @@ class ModelFormatError(Exception):
         super().__init__(self.message)
 
 
+class Pick:
+    def __init__(self, start):
+        self.maximum = 0
+        self.length = 0
+        self.start = start
+
+    def add(self, value):
+        if value > self.maximum:
+            self.maximum = value
+        self.length += 1
+
+    def __repr__(self):
+        return f"Pick({self.start}, {self.start + self.length}, max: {self.maximum})"
+
+
 class HydrophobicityProfile:
     def __init__(self, sequence, model_id, frame_size, edge_proportion):
         with open('models.json') as f:
@@ -48,13 +63,25 @@ class HydrophobicityProfile:
         self.points = []
         self.abscissa_axe = Axe(frame_size, len(hydrophobicity_values) - frame_size)
         self.ordinate_axe = Axe(min(hydrophobicity_values), max(hydrophobicity_values))
+        self.picks = []
+        previous_value = 0
         for i in range(frame_size, len(hydrophobicity_values) - frame_size):
             frame = hydrophobicity_values[i - frame_size:i + frame_size + 1]
             # edge of the frame count for 0% of the average and the center counts for 100% of the average
             for j in range(len(frame)):
                 frame[j] = frame[j] * (1 / frame_size * -(abs(j - frame_size) * (1 - edge_proportion)) + 1)
 
-            self.points.append(flet.LineChartDataPoint(i, sum(frame) / len(frame)))
+            value = sum(frame) / len(frame)
+            if value > 0.5:
+                if previous_value < 0.5:
+                    self.picks.append(Pick(i))
+                self.picks[-1].add(value)
+            else:
+                if previous_value > 0.5:
+                    if self.picks[-1].length < 10:
+                        self.picks.pop()
+            previous_value = value
+            self.points.append(flet.LineChartDataPoint(i, value, tooltip=str(round(value, 4))))
 
     @staticmethod
     def get_models_names():

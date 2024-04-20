@@ -54,7 +54,7 @@ class FletApp:
                         label="Window size",
                         input_filter=ft.NumbersOnlyInputFilter(),
                         keyboard_type=ft.KeyboardType.NUMBER,
-                        value="9",
+                        value="4",
                         bgcolor=ft.colors.with_opacity(0.2, ft.colors.BLACK),
                         max_lines=1,
                         min_lines=1,
@@ -157,7 +157,7 @@ class FletApp:
         """ Réinitialise les valeurs des champs de saisie et le bouton de validation. """
         if weighting is not None or window_size is not None or model is not None or validate_button is not None:
             weighting.current.value = "100.0"
-            window_size.current.value = "9"
+            window_size.current.value = "4"
             model.current.value = None
             validate_button.current.disabled = True
 
@@ -211,7 +211,7 @@ class FletApp:
 
         profile_list = []
         for chain, sequence in pdb_file.seqres.items():
-            profile = HydrophobicityProfile(sequence, model_copy, window_size_copy // 2, weighting_copy)
+            profile = HydrophobicityProfile(sequence, model_copy, window_size_copy, weighting_copy)
             profile_list.append((chain, profile))
 
         data_list = []
