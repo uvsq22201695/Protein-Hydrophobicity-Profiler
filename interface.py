@@ -7,21 +7,23 @@ from pdb import PDBFile
 class FletApp:
     def __init__(self, page):
         self.page = page
-        self.path = None
-
         self.page.title = "Protein Hydrophobicity Profiler"
         self.page.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.page.theme = ft.Theme(color_scheme_seed=ft.colors.PINK, use_material3=True)
 
-        main_content = ft.Ref[ft.Column]()
         page_dialog = ft.Ref[ft.AlertDialog]()
         weighting = ft.Ref[ft.TextField]()
         window_size = ft.Ref[ft.TextField]()
         model = ft.Ref[ft.Dropdown]()
         validate_button = ft.Ref[ft.FilledButton]()
+        pick_files_dialog = ft.Ref[ft.FilePicker]()
 
-        pick_files_dialog = ft.FilePicker(on_result=lambda e: self._pick_files_result(e, page_dialog))
-        self.page.overlay.append(pick_files_dialog)
+        self.page.overlay.append(
+            ft.FilePicker(
+                on_result=lambda e: self._pick_files_result(e, page_dialog),
+                ref=pick_files_dialog
+            )
+        )
 
         models_name = HydrophobicityProfile.get_models_names()
 
@@ -85,39 +87,60 @@ class FletApp:
                     ref=validate_button,
                     text="Validate",
                     on_click=lambda _: self._generate_profile(page_dialog, weighting, window_size, model,
-                                                              validate_button, main_content),
+                                                              validate_button),
                     disabled=True
                 )
             ],
             actions_alignment=ft.MainAxisAlignment.END
         )
 
-        self.page.add(
-            ft.Row([
-                ft.Container(
-                    ft.FilledButton(icon=ft.icons.FILE_UPLOAD_ROUNDED,
-                                    text="Select a PDB file",
-                                    on_click=lambda _: pick_files_dialog.pick_files(
-                                        allow_multiple=False,
-                                        allowed_extensions=["pdb"],
-                                        dialog_title="Select a PDB file",
-                                        file_type=ft.FilePickerFileType.CUSTOM,
-                                    )),
-                    padding=20
-                ),
-                ft.VerticalDivider(width=20),
-                ft.Column([
-                    ft.Text("No file selected", disabled=True),
+        self.page.on_view_pop = self.view_pop
+
+        self.page.views.append(
+            ft.View(
+                "/",
+                [
+                    ft.Row(
+                        [
+                            ft.Image(
+                                src="logo.png",
+                                width=500,
+                                height=500
+                            ),
+                            ft.Column(
+                                [
+                                    ft.Text(
+                                        size=30,
+                                        weight=ft.FontWeight.BOLD,
+                                        selectable=True,
+                                        spans=[ft.TextSpan(text="Welcome to the Protein Hydrophobicity Profiler")],
+                                        text_align=ft.TextAlign.CENTER
+                                    ),
+                                    ft.FilledButton(
+                                        icon=ft.icons.FILE_UPLOAD_ROUNDED,
+                                        text="Select a PDB file to begin",
+                                        on_click=lambda _: pick_files_dialog.current.pick_files(
+                                            allow_multiple=False,
+                                            allowed_extensions=["pdb"],
+                                            dialog_title="Select a PDB file to begin",
+                                            file_type=ft.FilePickerFileType.CUSTOM,
+                                        )
+                                    )
+                                ]
+                            )
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER,
+                    )
                 ],
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    expand=True,
-                    ref=main_content
-                )],
-                vertical_alignment=ft.CrossAxisAlignment.START,
-                expand=True
+                vertical_alignment=ft.MainAxisAlignment.CENTER,
             )
         )
+
+        self.page.go("/")
+
+    def view_pop(self, _: ft.ViewPopEvent):
+        self.page.views.pop()
+        self.page.go(self.page.views[-1].route)
 
     @staticmethod
     def _check_parameters(validate_button: ft.Ref[ft.FilledButton], weighting: ft.Ref[ft.TextField],
@@ -176,7 +199,7 @@ class FletApp:
 
     def _generate_profile(self, page_dialog: ft.Ref[ft.AlertDialog], weighting: ft.Ref[ft.TextField],
                           window_size: ft.Ref[ft.TextField], model: ft.Ref[ft.Dropdown],
-                          validate_button: ft.Ref[ft.FilledButton], main_content: ft.Ref[ft.Column]):
+                          validate_button: ft.Ref[ft.FilledButton]):
         """ Génère un profil d'hydrophobicité à partir des paramètres choisis. """
         model_copy = int(model.current.value)
         window_size_copy = int(window_size.current.value)
@@ -210,156 +233,168 @@ class FletApp:
         line_chart_ref = ft.Ref[ft.LineChart]()
         list_view_ref = ft.Ref[ft.ListView]()
 
-        main_content.current.controls.clear()
+        self.page.views.append(
+            ft.View(
+                route="/profile",
+                controls=
+                [
+                    ft.AppBar(title=ft.Text("Protein Hydrophobicity Profiler")),
+                    ft.Column(
+                        [
+                            ft.Text(
+                                size=30,
+                                weight=ft.FontWeight.BOLD,
+                                selectable=True,
+                                spans=[ft.TextSpan(text=f"{pdb_file.journal.title}")],
+                                text_align=ft.TextAlign.CENTER
+                            ),
+                            ft.Container(
+                                content=ft.NavigationBar(
+                                    destinations=[
+                                        ft.NavigationDestination(icon=ft.icons.STACKED_LINE_CHART_ROUNDED,
+                                                                 label="Hydrophobicity Profile"),
+                                        ft.NavigationDestination(icon=ft.icons.INFO_ROUNDED, label="Details")
+                                    ],
+                                    on_change=lambda e: self._switch_content(e, line_chart_ref, switch_ref,
+                                                                             list_view_ref),
+                                    width=self.page.width / 2
+                                ),
+                                border_radius=20
+                            ),
 
-        main_content.current.controls.extend([
-            ft.Text(
-                size=30,
-                weight=ft.FontWeight.BOLD,
-                selectable=True,
-                spans=[ft.TextSpan(text=f"{pdb_file.journal.title}")],
-                text_align=ft.TextAlign.CENTER
-            ),
-            ft.Container(
-                content=ft.NavigationBar(
-                    destinations=[
-                        ft.NavigationDestination(icon=ft.icons.STACKED_LINE_CHART_ROUNDED,
-                                                 label="Hydrophobicity Profile"),
-                        ft.NavigationDestination(icon=ft.icons.INFO_ROUNDED, label="Details")
-                    ],
-                    on_change=lambda e: self._switch_content(e, main_content, line_chart_ref, switch_ref,
-                                                             list_view_ref),
-                    width=self.page.width / 2
-                ),
-                border_radius=20
-            ),
+                            ft.Row(
+                                [ft.Switch(
+                                    label=f"Show chain {chain}",
+                                    value=True,
+                                    on_change=lambda e: self._show_hide_chains(e, data_list)
+                                ) for chain, _ in profile_list],
+                                alignment=ft.MainAxisAlignment.CENTER,
+                                ref=switch_ref
+                            ),
 
-            ft.Row(
-                [ft.Switch(
-                    label=f"Show chain {chain}",
-                    value=True,
-                    on_change=lambda e: self._show_hide_chains(e, data_list)
-                ) for chain, _ in profile_list],
-                alignment=ft.MainAxisAlignment.CENTER,
-                ref=switch_ref
-            ),
+                            ft.LineChart(
+                                data_series=data_list,
+                                tooltip_bgcolor=ft.colors.with_opacity(0.8, ft.colors.BLUE_GREY),
+                                min_y=min(profile.ordinate_axe.min_value for _, profile in profile_list),
+                                max_y=max(profile.ordinate_axe.max_value for _, profile in profile_list),
+                                min_x=min(profile.abscissa_axe.min_value for _, profile in profile_list),
+                                max_x=max(profile.abscissa_axe.max_value for _, profile in profile_list),
+                                horizontal_grid_lines=ft.ChartGridLines(
+                                    interval=1, color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE), width=1
+                                ),
+                                vertical_grid_lines=ft.ChartGridLines(
+                                    interval=5, color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE), width=1
+                                ),
+                                left_axis=ft.ChartAxis(
+                                    title=ft.Text("Hydrophobicity"),
+                                    labels_interval=1,
+                                    labels_size=50
+                                ),
+                                bottom_axis=ft.ChartAxis(
+                                    title=ft.Text("Amino acids"),
+                                    labels_interval=50,
+                                    labels_size=50
+                                ),
+                                border=ft.border.all(3, ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE)),
+                                expand=True,
+                                ref=line_chart_ref
+                            ),
 
-            ft.LineChart(
-                data_series=data_list,
-                tooltip_bgcolor=ft.colors.with_opacity(0.8, ft.colors.BLUE_GREY),
-                min_y=min(profile.ordinate_axe.min_value for _, profile in profile_list),
-                max_y=max(profile.ordinate_axe.max_value for _, profile in profile_list),
-                min_x=min(profile.abscissa_axe.min_value for _, profile in profile_list),
-                max_x=max(profile.abscissa_axe.max_value for _, profile in profile_list),
-                horizontal_grid_lines=ft.ChartGridLines(
-                    interval=1, color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE), width=1
-                ),
-                vertical_grid_lines=ft.ChartGridLines(
-                    interval=5, color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE), width=1
-                ),
-                left_axis=ft.ChartAxis(
-                    title=ft.Text("Hydrophobicity"),
-                    labels_interval=1,
-                    labels_size=50
-                ),
-                bottom_axis=ft.ChartAxis(
-                    title=ft.Text("Amino acids"),
-                    labels_interval=50,
-                    labels_size=50
-                ),
-                border=ft.border.all(3, ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE)),
-                expand=True,
-                ref=line_chart_ref
-            ),
-
-            ft.ListView([
-                ft.ExpansionPanelList(
-                    expand_icon_color=ft.colors.BLUE_GREY,
-                    spacing=20,
-                    elevation=8,
-                    divider_color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE),
-                    controls=[
-                        ft.ExpansionPanel(
-                            header=ft.ListTile(leading=ft.Icon(ft.icons.NEWSPAPER_ROUNDED),
-                                               title=ft.Text("Journal Information")),
-                            can_tap_header=True,
-                            content=ft.ListTile(
-                                title=ft.Markdown(
-                                    value=f"**Title:** {pdb_file.journal.title if pdb_file.journal.title else 'Not available'}\n\n" +
-                                          f"**Authors:** {', '.join(pdb_file.journal.authors) if pdb_file.journal.authors else 'Not available'}\n\n" +
-                                          f"**PubMed Link:** [{pdb_file.journal.pubmed_link if pdb_file.journal.pubmed_link else 'Not available'}]" +
-                                          f"({pdb_file.journal.pubmed_link if pdb_file.journal.pubmed_link else '#'})\n\n" +
-                                          f"**PubMed ID:** {pdb_file.journal.pubmed_id if pdb_file.journal.pubmed_id else 'Not available'}\n\n" +
-                                          f"**DOI:** {pdb_file.journal.digital_object_identifier if pdb_file.journal.digital_object_identifier else 'Not available'}\n\n" +
-                                          f"**ISSN:** {pdb_file.journal.international_standard_serial_number if pdb_file.journal.international_standard_serial_number else 'Not available'}\n\n" +
-                                          f"**Publisher:** {pdb_file.journal.publisher if pdb_file.journal.publisher else 'Not available'}\n\n" +
-                                          f"**Year:** {pdb_file.journal.reference.year if pdb_file.journal.reference.year else 'Not available'}\n\n" +
-                                          f"**Volume:** {pdb_file.journal.reference.volume if pdb_file.journal.reference.volume else 'Not available'}\n\n" +
-                                          f"**Page:** {pdb_file.journal.reference.page if pdb_file.journal.reference.page else 'Not available'}\n\n" +
-                                          f"**Publication Name:** {pdb_file.journal.reference.pub_name if pdb_file.journal.reference.pub_name else 'Not available'}",
-                                    auto_follow_links=True,
-                                    selectable=True)
-                            )
-                        ),
-
-                        ft.ExpansionPanel(
-                            header=ft.ListTile(leading=ft.Icon(ft.icons.ATTACH_FILE_ROUNDED),
-                                               title=ft.Text("PDB Information")),
-                            can_tap_header=True,
-                            content=ft.ListTile(
-                                title=ft.Column([
-                                    ft.Markdown(
-                                        value=f"**Author(s):** {', '.join(pdb_file.authors) if pdb_file.authors else 'Not available'}\n\n" +
-                                              f"**PDB Link:** [{pdb_file.header.pdb_link if pdb_file.header.pdb_link else 'Not available'}]({pdb_file.header.pdb_link if pdb_file.header.pdb_link else '#'})\n\n" +
-                                              f"**Date:** {pdb_file.header.date if pdb_file.header.date else 'Not available'}\n\n" +
-                                              f"**Classification:** {pdb_file.header.classification if pdb_file.header.classification else 'Not available'}\n\n" +
-                                              f"**ID:** {pdb_file.header.id if pdb_file.header.id else 'Not available'}",
-                                        auto_follow_links=True,
-                                        selectable=True),
-                                    ft.ExpansionPanelList(
-                                        controls=[
-                                            ft.ExpansionPanel(
-                                                header=ft.ListTile(leading=ft.Icon(ft.icons.LIST_ROUNDED),
-                                                                   title=ft.Text("Sequence")),
-                                                can_tap_header=True,
-                                                content=ft.ListTile(
-                                                    title=ft.Column([
-                                                        ft.Markdown(
-                                                            value=f"**Chain {chain}**\n\n{' '.join(sequence)}",
-                                                            selectable=True) for chain, sequence in
-                                                        pdb_file.seqres.items()
-                                                    ])
-                                                )
+                            ft.ListView([
+                                ft.ExpansionPanelList(
+                                    expand_icon_color=ft.colors.BLUE_GREY,
+                                    spacing=20,
+                                    elevation=8,
+                                    divider_color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE),
+                                    controls=[
+                                        ft.ExpansionPanel(
+                                            header=ft.ListTile(leading=ft.Icon(ft.icons.NEWSPAPER_ROUNDED),
+                                                               title=ft.Text("Journal Information")),
+                                            can_tap_header=True,
+                                            content=ft.ListTile(
+                                                title=ft.Markdown(
+                                                    value=f"**Title:** {pdb_file.journal.title if pdb_file.journal.title else 'Not available'}\n\n" +
+                                                          f"**Authors:** {', '.join(pdb_file.journal.authors) if pdb_file.journal.authors else 'Not available'}\n\n" +
+                                                          f"**PubMed Link:** [{pdb_file.journal.pubmed_link if pdb_file.journal.pubmed_link else 'Not available'}]" +
+                                                          f"({pdb_file.journal.pubmed_link if pdb_file.journal.pubmed_link else '#'})\n\n" +
+                                                          f"**PubMed ID:** {pdb_file.journal.pubmed_id if pdb_file.journal.pubmed_id else 'Not available'}\n\n" +
+                                                          f"**DOI:** {pdb_file.journal.digital_object_identifier if pdb_file.journal.digital_object_identifier else 'Not available'}\n\n" +
+                                                          f"**ISSN:** {pdb_file.journal.international_standard_serial_number if pdb_file.journal.international_standard_serial_number else 'Not available'}\n\n" +
+                                                          f"**Publisher:** {pdb_file.journal.publisher if pdb_file.journal.publisher else 'Not available'}\n\n" +
+                                                          f"**Year:** {pdb_file.journal.reference.year if pdb_file.journal.reference.year else 'Not available'}\n\n" +
+                                                          f"**Volume:** {pdb_file.journal.reference.volume if pdb_file.journal.reference.volume else 'Not available'}\n\n" +
+                                                          f"**Page:** {pdb_file.journal.reference.page if pdb_file.journal.reference.page else 'Not available'}\n\n" +
+                                                          f"**Publication Name:** {pdb_file.journal.reference.pub_name if pdb_file.journal.reference.pub_name else 'Not available'}",
+                                                    auto_follow_links=True,
+                                                    selectable=True)
                                             )
-                                        ]
-                                    )
-                                ])
-                            )
-                        ),
+                                        ),
 
-                        ft.ExpansionPanel(
-                            header=ft.ListTile(leading=ft.Icon(ft.icons.SETTINGS_ROUNDED),
-                                               title=ft.Text("Parameters")),
-                            can_tap_header=True,
-                            content=ft.ListTile(
-                                title=ft.Markdown(
-                                    value=f"**Model:** {model.current.options[model_copy].text if model.current.options[model_copy].text else 'Not available'}\n\n" +
-                                          f"**Window size:** {window_size_copy if window_size_copy else 'Not available'}\n\n" +
-                                          f"**Weighting:** {weighting_copy * 100 if weighting_copy else 'Not available'}%",
-                                    selectable=True))
-                        )
+                                        ft.ExpansionPanel(
+                                            header=ft.ListTile(leading=ft.Icon(ft.icons.ATTACH_FILE_ROUNDED),
+                                                               title=ft.Text("PDB Information")),
+                                            can_tap_header=True,
+                                            content=ft.ListTile(
+                                                title=ft.Column([
+                                                    ft.Markdown(
+                                                        value=f"**Author(s):** {', '.join(pdb_file.authors) if pdb_file.authors else 'Not available'}\n\n" +
+                                                              f"**PDB Link:** [{pdb_file.header.pdb_link if pdb_file.header.pdb_link else 'Not available'}]({pdb_file.header.pdb_link if pdb_file.header.pdb_link else '#'})\n\n" +
+                                                              f"**Date:** {pdb_file.header.date if pdb_file.header.date else 'Not available'}\n\n" +
+                                                              f"**Classification:** {pdb_file.header.classification if pdb_file.header.classification else 'Not available'}\n\n" +
+                                                              f"**ID:** {pdb_file.header.id if pdb_file.header.id else 'Not available'}",
+                                                        auto_follow_links=True,
+                                                        selectable=True),
+                                                    ft.ExpansionPanelList(
+                                                        controls=[
+                                                            ft.ExpansionPanel(
+                                                                header=ft.ListTile(
+                                                                    leading=ft.Icon(ft.icons.LIST_ROUNDED),
+                                                                    title=ft.Text("Sequence")),
+                                                                can_tap_header=True,
+                                                                content=ft.ListTile(
+                                                                    title=ft.Column([
+                                                                        ft.Markdown(
+                                                                            value=f"**Chain {chain}**\n\n{' '.join(sequence)}",
+                                                                            selectable=True) for chain, sequence in
+                                                                        pdb_file.seqres.items()
+                                                                    ])
+                                                                )
+                                                            )
+                                                        ]
+                                                    )
+                                                ])
+                                            )
+                                        ),
 
-                    ]
-                )],
-                auto_scroll=True,
-                padding=20,
-                expand=True,
-                visible=False,
-                ref=list_view_ref
+                                        ft.ExpansionPanel(
+                                            header=ft.ListTile(leading=ft.Icon(ft.icons.SETTINGS_ROUNDED),
+                                                               title=ft.Text("Parameters")),
+                                            can_tap_header=True,
+                                            content=ft.ListTile(
+                                                title=ft.Markdown(
+                                                    value=f"**Model:** {model.current.options[model_copy].text if model.current.options[model_copy].text else 'Not available'}\n\n" +
+                                                          f"**Window size:** {window_size_copy if window_size_copy else 'Not available'}\n\n" +
+                                                          f"**Weighting:** {weighting_copy * 100 if weighting_copy else 'Not available'}%",
+                                                    selectable=True))
+                                        )
+
+                                    ]
+                                )],
+                                auto_scroll=True,
+                                padding=20,
+                                expand=True,
+                                visible=False,
+                                ref=list_view_ref
+                            )],
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        expand=True
+                    )
+                ]
             )
-        ])
+        )
 
-        main_content.current.update()
+        self.page.go("/profile")
 
     @staticmethod
     def _show_hide_chains(e, data_list):
@@ -370,8 +405,7 @@ class FletApp:
                 data.update()
                 break
 
-    @staticmethod
-    def _switch_content(e: ft.ControlEvent, main_content: ft.Ref[ft.Column], chart: ft.Ref[ft.LineChart],
+    def _switch_content(self, e: ft.ControlEvent, chart: ft.Ref[ft.LineChart],
                         checkboxes: ft.Ref[ft.Row], list_view_ref: ft.Ref[ft.ListView]):
         """ Change le contenu de la page en fonction de l'onglet sélectionné. """
 
@@ -384,7 +418,7 @@ class FletApp:
             checkboxes.current.visible = False
             list_view_ref.current.visible = True
 
-        main_content.current.update()
+        self.page.views[-1].update()
 
     @staticmethod
     def _get_color_by_chain(chain: str):
