@@ -38,17 +38,20 @@ class ModelFormatError(Exception):
 
 class Pick:
     def __init__(self, start):
-        self.maximum = 0
+        self.maximum = None
+        self.minimum = None
         self.length = 0
         self.start = start
 
     def add(self, value):
-        if value > self.maximum:
+        if not self.maximum or value > self.maximum:
             self.maximum = value
+        if not self.minimum or value < self.minimum:
+            self.minimum = value
         self.length += 1
 
     def __repr__(self):
-        return f"Pick({self.start}, {self.start + self.length}, max: {self.maximum})"
+        return f"Pick({self.start}, {self.start + self.length}, max: {self.maximum}, min: {self.minimum})"
 
 
 class HydrophobicityProfile:
