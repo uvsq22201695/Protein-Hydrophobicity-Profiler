@@ -262,7 +262,6 @@ class FletApp:
                                     on_change=lambda e: self._show_hide_chains(e, data_list)
                                 ) for chain, _ in profile_list],
                                 ref=switch_ref,
-                                auto_scroll=True,
                                 horizontal=True,
                                 height=0.1 * self.page.height,
                             ),
@@ -362,6 +361,76 @@ class FletApp:
                                         ),
 
                                         ft.ExpansionPanel(
+                                            header=ft.ListTile(leading=ft.Icon(ft.icons.ANALYTICS),
+                                                               title=ft.Text("Hydrophobicity analysis")),
+                                            can_tap_header=True,
+                                            content=ft.ListTile(
+                                                title=ft.Column(
+                                                    [
+                                                        ft.ExpansionTile(
+                                                            title=ft.Text(f"Chain {chain}"),
+                                                            leading=ft.Icon(ft.icons.CIRCLE, color=self._get_color_by_chain(chain)),
+                                                            subtitle=ft.Text(
+                                                                f"{len(profile.picks)} predicted transmembrane domains"),
+                                                            controls=[
+                                                                ft.ExpansionTile(
+                                                                    title=ft.Text(f"Pick {i + 1}"),
+                                                                    controls=[
+                                                                        ft.ListTile(
+                                                                            title=ft.Markdown(
+                                                                                value=f"**Start:** {pick.start}\n\n" +
+                                                                                      f"**End:** {pick.start + pick.length}\n\n" +
+                                                                                      f"**Length:** {pick.length}\n\n" +
+                                                                                      f"**Maximum:** {pick.maximum :.2f}\n\n" +
+                                                                                      f"**Minimum:** {pick.minimum :.2f}\n\n",
+                                                                                selectable=True
+                                                                            ),
+                                                                            subtitle=ft.LineChart(
+                                                                                data_series=[
+                                                                                    ft.LineChartData(
+                                                                                        data_points=profile.points[pick.start - window_size_copy:pick.start + pick.length - window_size_copy + 1],
+                                                                                        stroke_width=2,
+                                                                                        curved=True,
+                                                                                        stroke_cap_round=True,
+                                                                                        color=self._get_color_by_chain(chain),
+                                                                                        data=chain,
+                                                                                    )
+                                                                                ],
+                                                                                tooltip_bgcolor=ft.colors.with_opacity(0.8, ft.colors.BLUE_GREY),
+                                                                                min_y=pick.minimum - 0.5,
+                                                                                max_y=pick.maximum + 0.5,
+                                                                                min_x=pick.start,
+                                                                                max_x=pick.start + pick.length,
+                                                                                horizontal_grid_lines=ft.ChartGridLines(
+                                                                                    interval=1, color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE), width=1
+                                                                                ),
+                                                                                vertical_grid_lines=ft.ChartGridLines(
+                                                                                    interval=5, color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE), width=1
+                                                                                ),
+                                                                                left_axis=ft.ChartAxis(
+                                                                                    title=ft.Text("Hydrophobicity"),
+                                                                                    labels_interval=1,
+                                                                                    labels_size=50
+                                                                                ),
+                                                                                bottom_axis=ft.ChartAxis(
+                                                                                    title=ft.Text("Amino acids"),
+                                                                                    labels_interval=50,
+                                                                                    labels_size=50
+                                                                                ),
+                                                                                border=ft.border.all(3, ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE)),
+                                                                                expand=True
+                                                                            )
+                                                                        )
+                                                                    ]
+                                                                ) for i, pick in enumerate(profile.picks)
+                                                            ]
+                                                        ) for chain, profile in profile_list
+                                                    ]
+                                                ),
+                                            )
+                                        ),
+
+                                        ft.ExpansionPanel(
                                             header=ft.ListTile(leading=ft.Icon(ft.icons.SETTINGS_ROUNDED),
                                                                title=ft.Text("Parameters")),
                                             can_tap_header=True,
@@ -370,12 +439,12 @@ class FletApp:
                                                     value=f"**Model:** {model.current.options[model_copy].text if model.current.options[model_copy].text else 'Not available'}\n\n" +
                                                           f"**Window size:** {window_size_copy if window_size_copy else 'Not available'}\n\n" +
                                                           f"**Weighting:** {weighting_copy * 100 if weighting_copy else 'Not available'}%",
-                                                    selectable=True))
+                                                    selectable=True),
+                                            )
                                         )
 
                                     ]
                                 )],
-                                auto_scroll=True,
                                 padding=20,
                                 expand=True,
                                 visible=False,
