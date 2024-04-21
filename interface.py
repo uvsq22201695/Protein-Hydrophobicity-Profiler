@@ -236,18 +236,11 @@ class FletApp:
         self.page.views.append(
             ft.View(
                 route="/profile",
-                controls=
-                [
-                    ft.AppBar(title=ft.Text("Protein Hydrophobicity Profiler")),
+                controls=[
+                    ft.AppBar(title=ft.Text(value=f"{pdb_file.journal.title}")),
+
                     ft.Column(
                         [
-                            ft.Text(
-                                size=30,
-                                weight=ft.FontWeight.BOLD,
-                                selectable=True,
-                                spans=[ft.TextSpan(text=f"{pdb_file.journal.title}")],
-                                text_align=ft.TextAlign.CENTER
-                            ),
                             ft.Container(
                                 content=ft.NavigationBar(
                                     destinations=[
@@ -262,14 +255,16 @@ class FletApp:
                                 border_radius=20
                             ),
 
-                            ft.Row(
+                            ft.ListView(
                                 [ft.Switch(
                                     label=f"Show chain {chain}",
                                     value=True,
                                     on_change=lambda e: self._show_hide_chains(e, data_list)
                                 ) for chain, _ in profile_list],
-                                alignment=ft.MainAxisAlignment.CENTER,
-                                ref=switch_ref
+                                ref=switch_ref,
+                                auto_scroll=True,
+                                horizontal=True,
+                                height=0.1 * self.page.height,
                             ),
 
                             ft.LineChart(
@@ -450,4 +445,30 @@ class FletApp:
             "X": ft.colors.RED_400,
             "Y": ft.colors.GREEN_400,
             "Z": ft.colors.BLUE_400,
+            "a": ft.colors.YELLOW_600,
+            "b": ft.colors.PURPLE_600,
+            "c": ft.colors.ORANGE_600,
+            "d": ft.colors.CYAN_600,
+            "e": ft.colors.PINK_600,
+            "f": ft.colors.RED_600,
+            "g": ft.colors.GREEN_600,
+            "h": ft.colors.BLUE_600,
+            "i": ft.colors.YELLOW_800,
+            "j": ft.colors.PURPLE_800,
+            "k": ft.colors.ORANGE_800,
+            "l": ft.colors.CYAN_800,
+            "m": ft.colors.PINK_800,
+            "n": ft.colors.RED_800,
+            "o": ft.colors.GREEN_800,
+            "p": ft.colors.BLUE_800,
+            "q": ft.colors.YELLOW_900,
+            "r": ft.colors.PURPLE_900,
+            "s": ft.colors.ORANGE_900,
+            "t": ft.colors.CYAN_900,
+            "u": ft.colors.PINK_900,
+            "v": ft.colors.RED_900,
+            "w": ft.colors.GREEN_900,
+            "x": ft.colors.BLUE_900,
+            "y": ft.colors.YELLOW_50,
+            "z": ft.colors.PURPLE_50,
         }[chain]
