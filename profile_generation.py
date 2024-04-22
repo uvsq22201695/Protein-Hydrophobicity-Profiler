@@ -40,7 +40,7 @@ class Pick:
     def __init__(self, start):
         self.maximum = None
         self.minimum = None
-        self.length = 0
+        self.length = -1
         self.start = start
 
     def add(self, value):
