@@ -1,7 +1,7 @@
 import flet as ft
 
-from profile_generation import HydrophobicityProfile
-from pdb import PDBFile
+from scripts.profile_generation import HydrophobicityProfile
+from scripts.pdb import PDBFile
 
 
 class FletApp:
