@@ -103,7 +103,7 @@ class FletApp:
                     ft.Row(
                         [
                             ft.Image(
-                                src="logo.png",
+                                src="../assets/icon.png",
                                 width=500,
                                 height=500
                             ),
