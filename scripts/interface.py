@@ -1,7 +1,7 @@
 import flet as ft
 
-from profile_generation import HydrophobicityProfile
-from pdb import PDBFile
+from scripts.profile_generation import HydrophobicityProfile
+from scripts.pdb import PDBFile
 
 
 class FletApp:
@@ -99,11 +99,11 @@ class FletApp:
         self.page.views.append(
             ft.View(
                 "/",
-                [
+                controls=[
                     ft.Row(
                         [
                             ft.Image(
-                                src="logo.png",
+                                src="../assets/icon.png",
                                 width=500,
                                 height=500
                             ),
@@ -117,14 +117,14 @@ class FletApp:
                                         text_align=ft.TextAlign.CENTER
                                     ),
                                     ft.FilledButton(
-                                        icon=ft.icons.FILE_UPLOAD_ROUNDED,
-                                        text="Select a PDB file to begin",
-                                        on_click=lambda _: pick_files_dialog.current.pick_files(
-                                            allow_multiple=False,
-                                            allowed_extensions=["pdb"],
-                                            dialog_title="Select a PDB file to begin",
-                                            file_type=ft.FilePickerFileType.CUSTOM,
-                                        )
+                                            icon=ft.icons.FILE_UPLOAD_ROUNDED,
+                                            text="Select a PDB file to begin",
+                                            on_click=lambda _: pick_files_dialog.current.pick_files(
+                                                allow_multiple=False,
+                                                allowed_extensions=["pdb"],
+                                                dialog_title="Select a PDB file to begin",
+                                                file_type=ft.FilePickerFileType.CUSTOM,
+                                            )
                                     )
                                 ]
                             )
@@ -258,6 +258,7 @@ class FletApp:
                             ft.ListView(
                                 [ft.Switch(
                                     label=f"Show chain {chain}",
+                                    active_color=self._get_color_by_chain(chain),
                                     value=True,
                                     on_change=lambda e: self._show_hide_chains(e, data_list)
                                 ) for chain, _ in profile_list],
@@ -280,13 +281,15 @@ class FletApp:
                                     interval=5, color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE), width=1
                                 ),
                                 left_axis=ft.ChartAxis(
-                                    title=ft.Text("Hydrophobicity"),
+                                    title=ft.Text("Hydrophobicity", size=25),
+                                    title_size=50,
                                     labels_interval=1,
                                     labels_size=50
                                 ),
                                 bottom_axis=ft.ChartAxis(
-                                    title=ft.Text("Amino acids"),
-                                    labels_interval=50,
+                                    title=ft.Text("Amino acids", size=25),
+                                    title_size=50,
+                                    labels_interval=25,
                                     labels_size=50
                                 ),
                                 border=ft.border.all(3, ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE)),
@@ -338,24 +341,27 @@ class FletApp:
                                                               f"**ID:** {pdb_file.header.id if pdb_file.header.id else 'Not available'}",
                                                         auto_follow_links=True,
                                                         selectable=True),
-                                                    ft.ExpansionPanelList(
+                                                    ft.ExpansionTile(
+                                                        title=ft.Text("Séquence"),
                                                         controls=[
-                                                            ft.ExpansionPanel(
-                                                                header=ft.ListTile(
-                                                                    leading=ft.Icon(ft.icons.LIST_ROUNDED),
-                                                                    title=ft.Text("Sequence")),
-                                                                can_tap_header=True,
-                                                                content=ft.ListTile(
-                                                                    title=ft.Column([
-                                                                        ft.Markdown(
-                                                                            value=f"**Chain {chain}**\n\n{' '.join(sequence)}",
-                                                                            selectable=True) for chain, sequence in
-                                                                        pdb_file.seqres.items()
-                                                                    ])
-                                                                )
-                                                            )
+                                                            ft.ExpansionTile(
+                                                                title=ft.Text(f"Chain {chain}"),
+                                                                subtitle=ft.Text(f"Length: {len(sequence)}"),
+                                                                leading=ft.Icon(ft.icons.CIRCLE,
+                                                                                color=self._get_color_by_chain(chain)),
+                                                                controls=[
+                                                                    ft.ListTile(
+                                                                        title=ft.Markdown(
+                                                                            value=f"{' '.join(sequence)}",
+                                                                            selectable=True
+                                                                        )
+                                                                    )
+                                                                ]
+                                                            ) for chain, sequence in pdb_file.seqres.items()
                                                         ]
+
                                                     )
+
                                                 ])
                                             )
                                         ),
@@ -369,7 +375,8 @@ class FletApp:
                                                     [
                                                         ft.ExpansionTile(
                                                             title=ft.Text(f"Chain {chain}"),
-                                                            leading=ft.Icon(ft.icons.CIRCLE, color=self._get_color_by_chain(chain)),
+                                                            leading=ft.Icon(ft.icons.CIRCLE,
+                                                                            color=self._get_color_by_chain(chain)),
                                                             subtitle=ft.Text(
                                                                 f"{len(profile.picks)} predicted transmembrane domains"),
                                                             controls=[
@@ -388,24 +395,33 @@ class FletApp:
                                                                             subtitle=ft.LineChart(
                                                                                 data_series=[
                                                                                     ft.LineChartData(
-                                                                                        data_points=profile.points[pick.start - window_size_copy:pick.start + pick.length - window_size_copy + 1],
+                                                                                        data_points=profile.points[
+                                                                                                    pick.start - window_size_copy:pick.start + pick.length - window_size_copy + 1],
                                                                                         stroke_width=2,
                                                                                         curved=True,
                                                                                         stroke_cap_round=True,
-                                                                                        color=self._get_color_by_chain(chain),
+                                                                                        color=self._get_color_by_chain(
+                                                                                            chain),
                                                                                         data=chain,
                                                                                     )
                                                                                 ],
-                                                                                tooltip_bgcolor=ft.colors.with_opacity(0.8, ft.colors.BLUE_GREY),
+                                                                                tooltip_bgcolor=ft.colors.with_opacity(
+                                                                                    0.8, ft.colors.BLUE_GREY),
                                                                                 min_y=pick.minimum - 0.5,
                                                                                 max_y=pick.maximum + 0.5,
                                                                                 min_x=pick.start,
                                                                                 max_x=pick.start + pick.length,
                                                                                 horizontal_grid_lines=ft.ChartGridLines(
-                                                                                    interval=1, color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE), width=1
+                                                                                    interval=1,
+                                                                                    color=ft.colors.with_opacity(0.2,
+                                                                                                                 ft.colors.ON_SURFACE),
+                                                                                    width=1
                                                                                 ),
                                                                                 vertical_grid_lines=ft.ChartGridLines(
-                                                                                    interval=5, color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE), width=1
+                                                                                    interval=5,
+                                                                                    color=ft.colors.with_opacity(0.2,
+                                                                                                                 ft.colors.ON_SURFACE),
+                                                                                    width=1
                                                                                 ),
                                                                                 left_axis=ft.ChartAxis(
                                                                                     title=ft.Text("Hydrophobicity"),
@@ -417,7 +433,10 @@ class FletApp:
                                                                                     labels_interval=50,
                                                                                     labels_size=50
                                                                                 ),
-                                                                                border=ft.border.all(3, ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE)),
+                                                                                border=ft.border.all(3,
+                                                                                                     ft.colors.with_opacity(
+                                                                                                         0.2,
+                                                                                                         ft.colors.ON_SURFACE)),
                                                                                 expand=True
                                                                             )
                                                                         )

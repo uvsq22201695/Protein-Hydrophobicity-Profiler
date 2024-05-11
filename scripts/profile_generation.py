@@ -56,7 +56,7 @@ class Pick:
 
 class HydrophobicityProfile:
     def __init__(self, sequence, model_id, frame_size, edge_proportion):
-        with open('models.json') as f:
+        with open('data/models.json') as f:
             data = json.load(f)
         model = data[model_id]
         HydrophobicityProfile._check_model_integrity(model)
@@ -88,7 +88,7 @@ class HydrophobicityProfile:
 
     @staticmethod
     def get_models_names():
-        with open('models.json') as f:
+        with open('data/models.json') as f:
             data = json.load(f)
         models = []
         for model in data:
