@@ -75,7 +75,7 @@ class HydrophobicityProfile:
                 frame[j] = frame[j] * (1 / frame_size * -(abs(j - frame_size) * (1 - edge_proportion)) + 1)
 
             value = sum(frame) / len(frame)
-            if value > 0.5:
+            if value >= 0.5:
                 if previous_value < 0.5:
                     self.picks.append(Pick(i))
                 self.picks[-1].add(value)
