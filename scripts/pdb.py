@@ -1,16 +1,37 @@
+"""
+This module contains classes to parse PDB files.
+The classes are:
+    - Header: contains the header information of the PDB file.
+    - JournalReference: contains the reference information of the journal.
+    - Journal: contains the journal information of the PDB file.
+    - PDBFile: contains the information of the PDB file.
+"""
+
+
 class Header:
     def __init__(self, data: str):
+        """
+        Récupère les informations de l'en-tête du fichier PDB.
+        :param data: str: The data of the header.
+        :return: Header: The Header object.
+        """
         self.classification = data[10:50].strip()
         self.date = data[50:59].strip()
         self.id = data[62:66].strip()
         self.pdb_link = f"https://www.rcsb.org/structure/{self.id}"
 
     def __repr__(self):
+        """
+        Représentation de l'objet Header.
+        """
         return f"Header(classification={self.classification}, date={self.date}, id={self.id})"
 
 
 class JournalReference:
     def __init__(self, data: str):
+        """
+        Récupère les informations de la référence de l'article pubmed.
+        """
         self.pub_name = ""
         self.volume = ""
         self.page = ""
@@ -25,6 +46,9 @@ class JournalReference:
 
 class Journal:
     def __init__(self, data: str):
+        """
+        Récupère les informations de l'article pubmed.
+        """
         self.authors = []
         self.title = ""
         self.publisher = ""
@@ -57,6 +81,9 @@ class Journal:
 
 class PDBFile:
     def __init__(self, path):
+        """
+        Parse un fichier PDB.
+        """
         self.seqres = {}
         remarks = {}
         self.authors = []

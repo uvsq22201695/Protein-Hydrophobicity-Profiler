@@ -27,7 +27,7 @@ Ce module central traite les données entrées par l'utilisateur pour calculer l
 ### Gestion des fichiers PDB (`pdb.py`)
 Ce module est responsable de la gestion des fichiers de structure de protéines (PDB). Il parse les fichiers pour en extraire des informations cruciales comme les séquences d'acides aminés et les métadonnées associées aux publications et aux auteurs. Ce module assure également que les références aux bases de données externes et les citations sont correctement intégrées pour une référence facile par les utilisateurs.
 
-- **Classe `Header`** : Traite les informations de classification, la date, l'identifiant de la structure PDB, et fournit des liens vers des ressources externes comme la page RCSB.
+- **Classe `Header`** : Traite les informations de classification, la date, l'identifiant de la structure PDB, et fournit des liens vers des ressources externes comme la page PDB.
 - **Classe `Journal`** : Extrait et organise les informations de publication associées aux structures PDB, incluant les auteurs, le titre de l'article, l'éditeur, le numéro PubMed, et le DOI.
 - **Classe `PDBFile`** : Agit comme le gestionnaire principal pour les fichiers PDB, organisant l'extraction et le stockage des séquences d'acides aminés, des informations d'auteurs, des remarques, et des références du journal pour un accès facile.
 
@@ -39,21 +39,34 @@ Le fichier `main.py` agit comme le point d'entrée de l'application. Il initiali
 
 ## Prérequis
 - Python 3.11
-- Package Flet : `pip install flet`
+- Package Flet : `pip install flet==0.21.2`
 
 ## Installation
 Assurez-vous d'avoir Python 3.11 installé sur votre machine, puis installez le package Flet en utilisant la commande suivante :
 ```bash
-pip install flet
+pip install flet==0.21.2
 ```
 
 Ce package est également listé dans les ``requirements.txt`` du projet.
 
+### Sur linux
+L'utilisation de flet sur linux nécessite une installation supplémentaire. Pour cela, exécutez le script `linux_install.sh` :
+```bash
+./linux_install.sh
+```
+
 ## Exécution
 
 Pour lancer l'application, exécutez le fichier `main.py` en utilisant Python 3.11 :
+
+Sur windows
 ```bash
 python main.py
+```
+
+Sur mac/linux
+```bash
+python3 main.py
 ```
 
 L'interface utilisateur s'ouvrira, vous permettant de charger un fichier PDB, de configurer les paramètres d'hydrophobicité, et de visualiser les profils générés. Suivez les instructions à l'écran pour interagir avec l'application et explorer les profils d'hydrophobicité des protéines.
