@@ -1,5 +1,7 @@
 # Profil d'Hydrophobicité des Protéines
 
+![image](assets/preview.png)
+
 Ce projet est développé par les étudiants :
 - BOISSERIE Baptiste, 22200450
 - FRANÇOIS Alexandre, 22201695
@@ -18,6 +20,7 @@ Il utilise la bibliothèque Flet pour générer des profils d'hydrophobicité de
 ### Interface principale (`interface.py`)
 L'interface utilisateur est conçue pour faciliter l'interaction avec l'application. Elle permet aux utilisateurs de charger des fichiers PDB, de choisir parmi différents modèles hydrophobiques et de paramétrer des options comme la taille de la fenêtre de calcul et la pondération aux extrémités. L'interface rend également possible la visualisation des résultats sous forme graphique, où les valeurs d'hydrophobicité le long de la chaîne protéique sont affichées clairement, permettant une analyse rapide et intuitive.
 
+De plus, l'interface offre la possibilité de visualiser chaque zone transmembranaire en détail dans l'onglet **Détails > Hydrophobicity analysis**. Cet onglet fournit non seulement une vue approfondie des régions hydrophobes mais contient également des informations supplémentaires telles que les paramètres choisis pour l'analyse, les détails sur le fichier PDB utilisé, et des données sur la provenance des informations du fichier PDB. Cette fonctionnalité enrichit l'expérience utilisateur en offrant un accès facile à des données complexes.
 ### Génération de profil (`profile_generation.py`)
 Ce module central traite les données entrées par l'utilisateur pour calculer l'hydrophobicité des séquences protéiques. Il utilise les données extraites du fichier PDB pour former une séquence d'acides aminés, puis applique le modèle hydrophobique sélectionné pour produire un profil d'hydrophobicité. Ce profil est calculé en tenant compte de la fenêtre de calcul spécifiée et de toute pondération appliquée aux extrémités de la chaîne protéique, ce qui permet une analyse précise de l'hydrophobicité locale et globale.
 
